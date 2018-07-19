@@ -1,0 +1,16 @@
+= An Operator for Automated Certificate Lifecycle in OpenShift
+
+== Prerequisites
+
+* link:https://github.com/operator-framework/operator-sdk[Operator SDK]
+* link:https://golang.github.io/dep/docs/installation.html[Dep]
+
+== Installation
+
+[source,bash]
+----
+dep ensure
+operator-sdk build quay.io/etsauer/cert-operator
+docker push quay.io/etsauer/cert-operator
+oc apply -f deploy/operator.yml
+----
