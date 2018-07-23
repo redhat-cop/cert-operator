@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: cert-operator
-          image: quay.io/etsauer/cert-operator:latest
+          image: etsuaer/cert-operator
           ports:
           - containerPort: 60000
             name: metrics

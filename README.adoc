@@ -9,8 +9,25 @@
 
 [source,bash]
 ----
+git clone [this repo]
 dep ensure
+----
+
+== Local Run for Development
+
+[source,bash]
+----
+oc login ...
+oc apply -f deploy/rbac.yaml -n operators
+operator-sdk up local
+----
+
+== Deployment to OpenShift
+
+[source,bash]
+----
 operator-sdk build quay.io/etsauer/cert-operator
 docker push quay.io/etsauer/cert-operator
-oc apply -f deploy/operator.yml
+oc apply -f deploy/rbac.yaml -n operators
+oc apply -f deploy/operator.yaml -n operators
 ----
