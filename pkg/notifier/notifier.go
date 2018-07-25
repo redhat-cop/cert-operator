@@ -6,11 +6,19 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	config "github.com/micro/go-config"
 	"github.com/openshift/api/route/v1"
 )
 
 type Notifier struct {
-	// Fill me
+	Name           string `json:"name"`
+	Kind           string `json:"kind"`
+	IntegrationURL string `json:"integration_url"`
+}
+
+type Provider struct {
+	Name string
+	Url  string
 }
 
 type ResultMessage struct {
@@ -19,10 +27,20 @@ type ResultMessage struct {
 	DebugLog string
 }
 
-func Notify(route *v1.Route, url string, provider string) ([]byte, error) {
-	switch provider {
+func NewNotifiers(config config.Config) []Notifier {
+	var notifiers []Notifier
+	return notifiers
+}
+
+func Notify(route *v1.Route, config config.Config) ([]byte, error) {
+	//for index, notifier := range
+	return nil, nil
+}
+
+func NotifyOnce(route *v1.Route, provider Provider) ([]byte, error) {
+	switch provider.Name {
 	case "slack":
-		return notifySlack(route, url)
+		return notifySlack(route, provider.Url)
 	default:
 		return json.Marshal(ResultMessage{"No provider configured", "", ""})
 	}

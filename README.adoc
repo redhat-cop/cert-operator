@@ -31,3 +31,54 @@ docker push quay.io/etsauer/cert-operator
 oc apply -f deploy/rbac.yaml -n operators
 oc apply -f deploy/operator.yaml -n operators
 ----
+
+== Testing Functionality
+
+This operator will create certificates for new routes. To test this functionality, first create a new application.
+
+[source,bash]
+----
+oc new-app --template dotnet-example
+----
+
+Then annotate the route, to tell the operator you it needs a cert.
+
+[source,bash]
+----
+oc annotate route dotnet-example openshift.io/managed.cert=new --overwrite
+----
+
+In the logs for your operator, you'll see something like:
+
+[source,bash]
+----
+INFO[0007] Found a route waiting for a cert : sbx-esauer/dotnet-example
+INFO[0007] Update route sbx-esauer/dotnet-example with new certificate
+----
+
+Then, if you take a look at your `dotnet-example` route, you'll see that it has been update with a TLS Edge policy.
+
+[source,bash]
+----
+$ oc get route dotnet-example -o yaml
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    openshift.io/managed.cert: "no"
+...
+  name: dotnet-example
+spec:
+...
+  tls:
+    certificate: |
+      -----BEGIN CERTIFICATE-----
+      ...
+      -----END CERTIFICATE-----
+    key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      ...
+      -----END RSA PRIVATE KEY-----
+    termination: edge
+    ...
+----

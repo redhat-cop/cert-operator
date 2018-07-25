@@ -4,6 +4,7 @@ import (
 	"context"
 	"runtime"
 
+	config "github.com/micro/go-config"
 	route "github.com/openshift/api/route/v1"
 	sdk "github.com/operator-framework/operator-sdk/pkg/sdk"
 	k8sutil "github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
@@ -23,11 +24,11 @@ func main() {
 	printVersion()
 	k8sutil.AddToSDKScheme(route.AddToScheme)
 
+	conf := config.NewConfig()
 	sdk.ExposeMetricsPort()
 
 	logrus.Infof("Watching Routes on all Namespaces")
 	sdk.Watch("route.openshift.io/v1", "Route", "", 60)
-	//sdk.Watch("v1", "Route", "", 5)
-	sdk.Handle(stub.NewHandler())
+	sdk.Handle(stub.NewHandler(conf))
 	sdk.Run(context.TODO())
 }
