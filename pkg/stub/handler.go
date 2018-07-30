@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"time"
 
-	config "github.com/micro/go-config"
 	v1 "github.com/openshift/api/route/v1"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/redhat-cop/cert-operator/pkg/certs"
@@ -13,13 +12,24 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NewHandler(config config.Config) sdk.Handler {
-	return &Handler{config: config}
+func NewHandler(config Config) sdk.Handler {
+	var provider certs.Provider
+	switch config.Provider.Kind {
+	case "self-signed":
+		provider = new(certs.SelfSignedProvider)
+	default:
+		panic("No cert provider configured." + config.String())
+	}
+	return &Handler{
+		config:   config,
+		provider: provider,
+	}
 }
 
 type Handler struct {
 	// Fill me
-	config config.Config
+	config   Config
+	provider certs.Provider
 }
 
 func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
@@ -35,13 +45,14 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 			logrus.Infof("Found a route waiting for a cert : %v/%v",
 				route.ObjectMeta.Namespace,
 				route.ObjectMeta.Name)
-			notify(route, h.config)
+			notify(route)
 			// Create cert request
 			oneYear, timeErr := time.ParseDuration("8760h")
 			if timeErr != nil {
 				return timeErr
 			}
-			cert, key, err := certs.Provision(route.Spec.Host, time.Now().Format("Jan 2 15:04:05 2006"), oneYear, false, 2048, "")
+
+			cert, key, err := h.provider.Provision(route.Spec.Host, time.Now().Format("Jan 2 15:04:05 2006"), oneYear, false, 2048, "")
 			if err != nil {
 				return err
 			}
@@ -66,8 +77,8 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 	return nil
 }
 
-func notify(route *v1.Route, config config.Config) {
-	result, err := notifier.Notify(route, config)
+func notify(route *v1.Route) {
+	result, err := notifier.Notify(route)
 	if err != nil {
 		panic(err)
 	}

@@ -12,7 +12,8 @@ required = [
   "k8s.io/gengo/args",
   "github.com/openshift/api/route/v1",
   "github.com/micro/go-config",
-  "github.com/fsnotify/fsnotify"
+  "github.com/fsnotify/fsnotify",
+  "github.com/pborman/uuid"
 ]
 
 [[override]]

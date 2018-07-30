@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	config "github.com/micro/go-config"
 	"github.com/openshift/api/route/v1"
 )
 
@@ -27,12 +26,12 @@ type ResultMessage struct {
 	DebugLog string
 }
 
-func NewNotifiers(config config.Config) []Notifier {
+func NewNotifiers() []Notifier {
 	var notifiers []Notifier
 	return notifiers
 }
 
-func Notify(route *v1.Route, config config.Config) ([]byte, error) {
+func Notify(route *v1.Route) ([]byte, error) {
 	//for index, notifier := range
 	return nil, nil
 }

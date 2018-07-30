@@ -218,7 +218,10 @@
     "reader",
     "reader/json",
     "source",
-    "source/file"
+    "source/env",
+    "source/file",
+    "source/flag",
+    "source/memory"
   ]
   revision = "3904282c3ef78454df3c3c0b880fb780778ad16a"
   version = "v0.7.0"
@@ -251,6 +254,12 @@
     "version"
   ]
   revision = "3ac731fc3bea56e357d3596f014ac5bb4a13a0bc"
+
+[[projects]]
+  name = "github.com/pborman/uuid"
+  packages = ["."]
+  revision = "e790cca94e6cc75c7064b1332e63811d4aae1a53"
+  version = "v1.1"
 
 [[projects]]
   branch = "master"
@@ -572,6 +581,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a221019ff9c0f42a9013bf51a8c937b248ebc6e078d891ea9442db88ed434df5"
+  inputs-digest = "750b13e2ab9edb208565f61ae8e3e0839318b601ed42ee14114e7cf6db7612b3"
   solver-name = "gps-cdcl"
   solver-version = 1
