@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "bitbucket.org/atlassian/go-stride"
+  packages = ["pkg/stride"]
+  revision = "78855f0a5d80b2683b11f3825a580a87e32a9f71"
+
+[[projects]]
   name = "github.com/BurntSushi/toml"
   packages = ["."]
   revision = "b26d9c308763d68093482582cea63d69be07a0f0"
@@ -21,6 +27,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/appscode/envconfig"
+  packages = ["."]
+  revision = "183bbe643a2875eaa69c85627ac6b25813983203"
+
+[[projects]]
+  branch = "master"
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
@@ -36,6 +48,12 @@
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
+
+[[projects]]
+  name = "github.com/dgrijalva/jwt-go"
+  packages = ["."]
+  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
+  version = "v3.2.0"
 
 [[projects]]
   name = "github.com/emicklei/go-restful"
@@ -274,6 +292,12 @@
   version = "v2.0.1"
 
 [[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
   name = "github.com/prometheus/client_golang"
   packages = [
     "prometheus",
@@ -308,6 +332,17 @@
     "xfs"
   ]
   revision = "ae68e2d4c00fed4943b5f6698d504a5fe083da8a"
+
+[[projects]]
+  name = "github.com/rs/zerolog"
+  packages = [
+    ".",
+    "internal/cbor",
+    "internal/json",
+    "log"
+  ]
+  revision = "77db4b4f350e31be66a57c332acb7721cf9ff9bb"
+  version = "v1.8.0"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -581,6 +616,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "750b13e2ab9edb208565f61ae8e3e0839318b601ed42ee14114e7cf6db7612b3"
+  inputs-digest = "a7d3a47b706e4d9eb7baacdcaa4b498a7e332d2196bd6855acff55e58110df45"
   solver-name = "gps-cdcl"
   solver-version = 1

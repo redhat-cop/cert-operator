@@ -45,10 +45,10 @@ func pemBlockForKey(priv interface{}) (*pem.Block, error) {
 	}
 }
 
-func (p *SelfSignedProvider) Provision(host string, validFrom string, validFor time.Duration, isCA bool, rsaBits int, ecdsaCurve string) (cert []byte, key []byte, certError error) {
+func (p *SelfSignedProvider) Provision(host string, validFrom string, validFor time.Duration, isCA bool, rsaBits int, ecdsaCurve string) (keypair KeyPair, certError error) {
 
 	if len(host) == 0 {
-		return nil, nil, NewErrBadHost("host cannot be empty")
+		return KeyPair{}, NewErrBadHost("host cannot be empty")
 	}
 
 	var priv interface{}
@@ -65,10 +65,10 @@ func (p *SelfSignedProvider) Provision(host string, validFrom string, validFor t
 	case "P521":
 		priv, err = ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
 	default:
-		return nil, nil, NewCertError("Unrecognized elliptic curve:" + ecdsaCurve)
+		return KeyPair{}, NewCertError("Unrecognized elliptic curve:" + ecdsaCurve)
 	}
 	if err != nil {
-		return nil, nil, NewErrPrivateKey("failed to generate private key: " + err.Error())
+		return KeyPair{}, NewErrPrivateKey("failed to generate private key: " + err.Error())
 	}
 
 	var notBefore time.Time
@@ -77,7 +77,7 @@ func (p *SelfSignedProvider) Provision(host string, validFrom string, validFor t
 	} else {
 		notBefore, err = time.Parse("Jan 2 15:04:05 2006", validFrom)
 		if err != nil {
-			return nil, nil, NewCertError("Failed to parse creation date: " + err.Error())
+			return KeyPair{}, NewCertError("Failed to parse creation date: " + err.Error())
 		}
 	}
 
@@ -86,7 +86,7 @@ func (p *SelfSignedProvider) Provision(host string, validFrom string, validFor t
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
-		return nil, nil, NewCertError("failed to generate serial number: " + err.Error())
+		return KeyPair{}, NewCertError("failed to generate serial number: " + err.Error())
 	}
 
 	template := x509.Certificate{
@@ -118,19 +118,25 @@ func (p *SelfSignedProvider) Provision(host string, validFrom string, validFor t
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, publicKey(priv), priv)
 	if err != nil {
-		return nil, nil, NewCertError("Failed to create certificate: " + err.Error())
+		return KeyPair{}, NewCertError("Failed to create certificate: " + err.Error())
 	}
+
+	var cert, key []byte
 
 	cert = pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 
 	pemBlock, err := pemBlockForKey(priv)
 	if err != nil {
-		return nil, nil, err
+		return KeyPair{}, err
 	}
 
 	key = pem.EncodeToMemory(pemBlock)
 
-	return cert, key, nil
+	return KeyPair{
+		Cert:   cert,
+		Key:    key,
+		Expiry: notAfter,
+	}, nil
 }
 
 func (p *SelfSignedProvider) Deprovision(host string) error {

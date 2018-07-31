@@ -13,7 +13,9 @@ required = [
   "github.com/openshift/api/route/v1",
   "github.com/micro/go-config",
   "github.com/fsnotify/fsnotify",
-  "github.com/pborman/uuid"
+  "github.com/pborman/uuid",
+  "bitbucket.org/atlassian/go-stride/pkg/stride",
+  "github.com/appscode/envconfig",
 ]
 
 [[override]]
