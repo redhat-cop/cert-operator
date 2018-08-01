@@ -10,7 +10,6 @@ notifiers:
 package stub
 
 import (
-	"fmt"
 	"os"
 
 	config "github.com/micro/go-config"
@@ -52,6 +51,9 @@ const (
         "format": "openshift.io/cert-ctl-format"
       }
     },
+    "provider": {
+      "kind": "none"
+    }
   }`
 )
 
@@ -77,8 +79,6 @@ func NewConfig() Config {
 
 	tmpConfig.Scan(&conf)
 
-	fmt.Println("Config: ", tmpConfig.Map()["notifiers"])
-
 	// if conf.Notifiers == nil {
 	// 	panic("Notifiers should not be empty")
 	// }
@@ -91,7 +91,7 @@ func NewConfig() Config {
 }
 
 func getConfigFile() (configFile string) {
-	if value, ok := os.LookupEnv("CERT_OS_CONFIG"); ok {
+	if value, ok := os.LookupEnv("CERT_OP_CONFIG"); ok {
 		logrus.Infof("Loading config file from %v", value)
 		return value
 	}

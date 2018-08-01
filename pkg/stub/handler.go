@@ -19,10 +19,13 @@ const (
 func NewHandler(config Config) sdk.Handler {
 	var provider certs.Provider
 	switch config.Provider.Kind {
+	case "none":
+		provider = new(certs.NoneProvider)
 	case "self-signed":
 		provider = new(certs.SelfSignedProvider)
 	default:
-		provider = new(certs.NoneProvider)
+		panic("There was a problem detecting which provider to configure. " +
+			"Provider kind `" + config.Provider.Kind + "` is invalid.")
 	}
 	return &Handler{
 		config:   config,

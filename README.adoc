@@ -35,7 +35,47 @@ oc apply -f deploy/rbac.yaml -n operators
 oc apply -f deploy/operator.yaml -n operators
 ----
 
-== Configuring Notifications
+== Configuration
+
+The operator is configured via a combination of environment variables and a configuration file. The majority of the config can be placed in a `YAML` formatted config file. The configuration file is loaded by searching in the following locations, with those at the top taking priority:
+
+* value of `CERT_OP_CONFIG` environment variable
+* `/etc/cert-operator/config.yml`
+
+=== General Config
+
+The cert operator uses annotations on the various resources it manages to decide what actions are required. The annotations that are used are configurable via the config file. The default values are as follows:
+
+[source,yaml]
+----
+general:
+  annotations:
+    status: openshift.io/cert-ctl-status
+    status-reason: openshift.io/cert-ctl-status-reason
+    expiry: openshift.io/cert-ctl-expires
+    format: openshift.io/cert-ctl-format
+----
+
+=== Certificate Providers
+
+The cert operator provides a pluggable architecture for supporting multiple certificate providers. The following is the set of current and planned providers.
+
+.Supported Providers
+* [x] NoneProvider(`none`) - A mock provider for testing which returns empty values
+* [x] SelfSignedProvider(`self-signed`) - Delivers self-signed certificates
+* [ ] LetsEncryptProvider(`lets-encrpyt`) - A free and open public CA
+* [ ] FreeIPAProvider(`ipa`) - An open source identity management system
+* [ ] VenafiProvider(`venafi`) - An Enterprise PKI product
+
+Configuring which provider is used is a matter of adding the following to your config.yml:
+
+[source,yaml]
+----
+provider:
+  kind: <name>
+----
+
+=== Notifications
 
 This operator currently supports sending notifications via ChatOps. The following is the set of current and planned providers.
 
