@@ -22,7 +22,7 @@ func NewHandler(config Config) sdk.Handler {
 	case "self-signed":
 		provider = new(certs.SelfSignedProvider)
 	default:
-		panic("No cert provider configured." + config.String())
+		provider = new(certs.NoneProvider)
 	}
 	return &Handler{
 		config:   config,

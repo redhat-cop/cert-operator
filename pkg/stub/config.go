@@ -52,19 +52,6 @@ const (
         "format": "openshift.io/cert-ctl-format"
       }
     },
-    "provider": {
-      "kind": "self-signed"
-    },
-    "notifiers": [
-      {
-        "name": "log-notifier",
-        "log_prefix": "prefix"
-      },
-      {
-        "name": "other",
-        "log_prefix": "other-prefix"
-      }
-    ]
   }`
 )
 

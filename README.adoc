@@ -36,8 +36,9 @@ oc apply -f deploy/operator.yaml -n operators
 
 This operator currently supports sending notifications via ChatOps. The following is the set of current and planned providers.
 
-[x] Slack
-[ ] RocketChat
+.Supported Notifiers
+* [x] Slack
+* [ ] RocketChat
 
 To configure sending notifications, set the following environment variables:
 
