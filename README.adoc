@@ -1,4 +1,7 @@
 = An Operator for Automated Certificate Lifecycle in OpenShift
+:toc: macro
+
+toc::[]
 
 == Prerequisites
 
