@@ -10,6 +10,8 @@ import (
 	"github.com/redhat-cop/cert-operator/pkg/certs"
 	"github.com/redhat-cop/cert-operator/pkg/notifier/slack"
 	"github.com/sirupsen/logrus"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -44,54 +46,119 @@ type Handler struct {
 func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 	switch o := event.Object.(type) {
 	case *v1.Route:
-		route := o
-		if route.ObjectMeta.Annotations == nil || route.ObjectMeta.Annotations[h.config.General.Annotations.Status] == "" {
-			return nil
-		}
-
-		if route.ObjectMeta.Annotations[h.config.General.Annotations.Status] == "new" {
-			// Notfiy of certificate awaiting creation
-			logrus.Infof("Found a route waiting for a cert : %v/%v",
-				route.ObjectMeta.Namespace,
-				route.ObjectMeta.Name)
-			h.notify(route)
-			// Create cert request
-			oneYear, timeErr := time.ParseDuration("8760h")
-			if timeErr != nil {
-				return timeErr
-			}
-
-			keyPair, err := h.provider.Provision(route.Spec.Host, time.Now().Format(timeFormat), oneYear, false, 2048, "")
-			if err != nil {
-				return err
-			}
-
-			// Retreive cert from provider
-			var routeCopy *v1.Route
-			routeCopy = route.DeepCopy()
-			routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "no"
-			routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Expiry] = keyPair.Expiry.Format(timeFormat)
-			routeCopy.Spec.TLS = &v1.TLSConfig{
-				Termination: v1.TLSTerminationEdge,
-				Certificate: string(keyPair.Cert),
-				Key:         string(keyPair.Key),
-			}
-			updateRoute(routeCopy)
-
-			logrus.Infof("Updated route %v/%v with new certificate",
-				route.ObjectMeta.Namespace,
-				route.ObjectMeta.Name)
-		}
-
+		h.handleRoute(o)
+	case *corev1.Service:
+		h.handleService(o)
 	}
 	return nil
 }
 
-func (h *Handler) notify(route *v1.Route) {
-	message := "" +
-		"_Namespace_: *" + route.ObjectMeta.Namespace + "*\n" +
-		"_Route Name_: *" + route.ObjectMeta.Name + "*\n"
+func (h *Handler) handleRoute(route *v1.Route) error {
+	if route.ObjectMeta.Annotations == nil || route.ObjectMeta.Annotations[h.config.General.Annotations.Status] == "" {
+		return nil
+	}
 
+	if route.ObjectMeta.Annotations[h.config.General.Annotations.Status] == "new" {
+		// Notfiy of certificate awaiting creation
+		logrus.Infof("Found a route waiting for a cert : %v/%v",
+			route.ObjectMeta.Namespace,
+			route.ObjectMeta.Name)
+		message := "" +
+			"_Namespace_: *" + route.ObjectMeta.Namespace + "*\n" +
+			"_Route Name_: *" + route.ObjectMeta.Name + "*\n"
+
+		h.notify(message)
+
+		// Retreive cert from provider
+		keyPair := h.getCert(route.Spec.Host)
+
+		var routeCopy *v1.Route
+		routeCopy = route.DeepCopy()
+		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "no"
+		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Expiry] = keyPair.Expiry.Format(timeFormat)
+		routeCopy.Spec.TLS = &v1.TLSConfig{
+			Termination: v1.TLSTerminationEdge,
+			Certificate: string(keyPair.Cert),
+			Key:         string(keyPair.Key),
+		}
+		updateRoute(routeCopy)
+
+		logrus.Infof("Updated route %v/%v with new certificate",
+			route.ObjectMeta.Namespace,
+			route.ObjectMeta.Name)
+	}
+	return nil
+}
+
+func (h *Handler) handleService(service *corev1.Service) error {
+	if service.ObjectMeta.Annotations == nil || service.ObjectMeta.Annotations[h.config.General.Annotations.Status] == "" {
+		return nil
+	}
+
+	if service.ObjectMeta.Annotations[h.config.General.Annotations.Status] == "new" {
+		logrus.Infof("Found a service waiting for a cert : %v/%v",
+			service.ObjectMeta.Namespace,
+			service.ObjectMeta.Name)
+
+		message := "" +
+			"_Namespace_: *" + service.ObjectMeta.Namespace + "*\n" +
+			"_Service Name_: *" + service.ObjectMeta.Name + "*\n"
+
+		h.notify(message)
+
+		host := service.ObjectMeta.Name + "." + service.ObjectMeta.Namespace + ".svc.cluster.local"
+
+		// Retreive cert from provider
+		keyPair := h.getCert(host)
+
+		var svcCopy *corev1.Service
+		svcCopy = service.DeepCopy()
+
+		dm := make(map[string][]byte)
+		dm["app.crt"] = keyPair.Cert
+		dm["app.key"] = keyPair.Key
+
+		// Create a secret
+		certSec := &corev1.Secret{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Secret",
+				APIVersion: "v1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      svcCopy.ObjectMeta.Name + "-certificate",
+				Namespace: svcCopy.ObjectMeta.Namespace,
+			},
+			Data: dm,
+		}
+
+		err := sdk.Create(certSec)
+		if err != nil {
+			logrus.Errorf("Failed to create secret: " + err.Error())
+			return err
+		}
+
+		logrus.Infof("Provisioned new secret %s/%s containing certificate",
+			certSec.ObjectMeta.Namespace,
+			certSec.ObjectMeta.Name)
+
+		// Update service annotations
+		svcCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "no"
+		svcCopy.ObjectMeta.Annotations[h.config.General.Annotations.Expiry] = keyPair.Expiry.Format(timeFormat)
+
+		err = sdk.Update(svcCopy)
+		if err != nil {
+			logrus.Errorf("Failed to update service: " + err.Error())
+			return err
+		}
+
+		logrus.Infof("Updated service %v/%v with new certificate",
+			service.ObjectMeta.Namespace,
+			service.ObjectMeta.Name)
+	}
+	return nil
+}
+
+func (h *Handler) notify(message string) {
 	switch os.Getenv("NOTIFIER_TYPE") {
 	case "slack":
 		c, err := slack.New()
@@ -107,6 +174,23 @@ func (h *Handler) notify(route *v1.Route) {
 	default:
 		logrus.Infof("No notification sent, as no notifier is configured.")
 	}
+}
+
+func (h *Handler) getCert(host string) certs.KeyPair {
+	oneYear, timeErr := time.ParseDuration("8760h")
+	if timeErr != nil {
+		logrus.Errorf("Failed to parse time duratio during getCert: " + timeErr.Error())
+	}
+
+	// Retreive cert from provider
+	keyPair, err := h.provider.Provision(
+		host,
+		time.Now().Format(timeFormat),
+		oneYear, false, 2048, "")
+	if err != nil {
+		logrus.Errorf("Failed to provision key pair: " + err.Error())
+	}
+	return keyPair
 }
 
 // update route def

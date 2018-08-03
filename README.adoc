@@ -93,18 +93,20 @@ NOTIFIER_TYPE="slack"
 
 == Testing Functionality
 
-This operator will create certificates for new routes. To test this functionality, first create a new application.
+This operator will create certificates for routes and services. To test this functionality, first create a new application.
 
 [source,bash]
 ----
 oc new-app --template dotnet-example
 ----
 
-Then annotate the route, to tell the operator you it needs a cert.
+=== Create a Certificate for a Route
+
+Annotate the route to tell the operator it needs a cert.
 
 [source,bash]
 ----
-oc annotate route dotnet-example openshift.io/managed.cert=new --overwrite
+oc annotate route dotnet-example openshift.io/cert-ctl-status=new --overwrite
 ----
 
 In the logs for your operator, you'll see something like:
@@ -140,4 +142,38 @@ spec:
       -----END RSA PRIVATE KEY-----
     termination: edge
     ...
+----
+
+=== Create a Certificate for a Service (SSL-to-Pod)
+
+Annotate the service to tell the operator it needs a cert.
+
+[source,bash]
+----
+oc annotate service dotnet-example openshift.io/cert-ctl-status=new --overwrite
+----
+
+In the logs for your operator, you'll see something like:
+
+[source,bash]
+----
+INFO[0005] Found a service waiting for a cert : sbx-esauer/dotnet-example
+INFO[0006] Provisioned new secret sbx-esauer/dotnet-example-certificate containing certificate
+INFO[0006] Updated service sbx-esauer/dotnet-example with new certificate
+----
+
+Look to see that a new secret has been created in your project.
+
+[source,bash]
+----
+$ oc get secret | grep dotnet-example
+dotnet-example-certificate             Opaque                                2         23m
+----
+
+You'll also notice that the annotation on the service has changed.
+
+[source,bash]
+----
+$ oc get service dotnet-example -o jsonpath='{.metadata.annotations.openshift\.io/cert-ctl-status}'
+no
 ----

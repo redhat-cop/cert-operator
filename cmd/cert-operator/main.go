@@ -28,6 +28,8 @@ func main() {
 
 	logrus.Infof("Watching Routes on all Namespaces")
 	sdk.Watch("route.openshift.io/v1", "Route", "", 60)
+	logrus.Infof("Watching Services on all Namespaces")
+	sdk.Watch("v1", "Service", "", 60)
 	sdk.Handle(stub.NewHandler(conf))
 	sdk.Run(context.TODO())
 }

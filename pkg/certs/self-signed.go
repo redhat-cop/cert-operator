@@ -10,39 +10,11 @@ import (
 	"encoding/pem"
 	"math/big"
 	"net"
-	"os"
 	"strings"
 	"time"
 )
 
 type SelfSignedProvider struct {
-}
-
-func publicKey(priv interface{}) interface{} {
-	switch k := priv.(type) {
-	case *rsa.PrivateKey:
-		return &k.PublicKey
-	case *ecdsa.PrivateKey:
-		return &k.PublicKey
-	default:
-		return nil
-	}
-}
-
-func pemBlockForKey(priv interface{}) (*pem.Block, error) {
-	switch k := priv.(type) {
-	case *rsa.PrivateKey:
-		return &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(k)}, nil
-	case *ecdsa.PrivateKey:
-		b, err := x509.MarshalECPrivateKey(k)
-		if err != nil {
-			return nil, NewCertError("Unable to marshal ECDSA private key: " + err.Error())
-			os.Exit(2)
-		}
-		return &pem.Block{Type: "EC PRIVATE KEY", Bytes: b}, nil
-	default:
-		return nil, NewCertError("Ran out of possible options for PEM Block")
-	}
 }
 
 func (p *SelfSignedProvider) Provision(host string, validFrom string, validFor time.Duration, isCA bool, rsaBits int, ecdsaCurve string) (keypair KeyPair, certError error) {
