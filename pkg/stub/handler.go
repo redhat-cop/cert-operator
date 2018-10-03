@@ -25,6 +25,9 @@ func NewHandler(config Config) sdk.Handler {
 		provider = new(certs.NoneProvider)
 	case "self-signed":
 		provider = new(certs.SelfSignedProvider)
+	case "venafi":
+		logrus.Infof("Venafi Cert provider.")
+		provider = new(certs.VenafiProvider)
 	default:
 		panic("There was a problem detecting which provider to configure. " +
 			"Provider kind `" + config.Provider.Kind + "` is invalid.")
