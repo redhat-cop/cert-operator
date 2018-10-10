@@ -65,7 +65,7 @@ The cert operator provides a pluggable architecture for supporting multiple cert
 * [x] SelfSignedProvider(`self-signed`) - Delivers self-signed certificates
 * [ ] LetsEncryptProvider(`lets-encrpyt`) - A free and open public CA
 * [ ] FreeIPAProvider(`ipa`) - An open source identity management system
-* [ ] VenafiProvider(`venafi`) - An Enterprise PKI product
+* [X] VenafiProvider(`venafi`) - An Enterprise PKI product
 
 Configuring which provider is used is a matter of adding the following to your config.yml:
 
