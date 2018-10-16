@@ -44,7 +44,6 @@ func pemBlockForKey(priv interface{}) (*pem.Block, error) {
 		b, err := x509.MarshalECPrivateKey(k)
 		if err != nil {
 			return nil, NewCertError("Unable to marshal ECDSA private key: " + err.Error())
-			os.Exit(2)
 		}
 		return &pem.Block{Type: "EC PRIVATE KEY", Bytes: b}, nil
 	default:
