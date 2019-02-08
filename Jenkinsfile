@@ -27,7 +27,7 @@ pipeline {
 
     stage('Build Cert Operator') {
       steps {
-       	sh './build.sh'
+       	sh 'pwd && ./build.sh'
       }
   	}
 
