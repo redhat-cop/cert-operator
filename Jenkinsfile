@@ -8,8 +8,8 @@ retriever: modernSCM(
 
 openshift.withCluster() {
   env.NAMESPACE = openshift.project()
-  env.APP_NAME = "${JOB_NAME}".replaceAll(/-build.*/, '')
-  echo "Starting Pipeline for ${APP_NAME}..."
+  env.APP_NAME = "cert-operator"
+  ARTIFACT_DIRECTORY = "build/bin"
 }
 
 pipeline {
@@ -22,6 +22,22 @@ pipeline {
   	stage('Git Checkout') {
       steps {
         git url: "${SOURCE_REPOSITORY_URL}"
+      }
+    }
+  }
+
+  stages {
+  	stage('Build Cert Operator') {
+      steps {
+       	sh './build.sh'
+      }
+    }
+  }
+
+  stages {
+  	stage('Build Image') {
+      steps {
+       	binaryBuild(projectName: "${NAMESPACE}", buildConfigName: "${APP_NAME}", artifactsDirectoryName: "${ARTIFACT_DIRECTORY}")
       }
     }
   }

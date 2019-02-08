@@ -63,9 +63,11 @@ parameters:
 - description: The name for the application.
   name: APPLICATION_NAME
   required: true
+  value: cert-operator
 - description: The namespace to deploy into
   name: NAMESPACE
   required: true
+  value: openshift-infra
 - description: Git source URI for application
   name: SOURCE_REPOSITORY_URL
   required: true
