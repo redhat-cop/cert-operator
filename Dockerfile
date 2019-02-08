@@ -8,4 +8,4 @@ RUN adduser -D cert-operator
 
 USER cert-operator
 
-ADD build/tmp/_output/bin/cert-operator /usr/local/bin/cert-operator
+ADD build/bin/cert-operator /usr/local/bin/cert-operator

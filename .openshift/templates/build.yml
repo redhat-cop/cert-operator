@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: cert-operator
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: ${APPLICATION_NAME}
+      app: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
+    namespace: ${NAMESPACE}
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${APPLICATION_NAME}:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      binary: {}
+      type: Binary 
+    strategy:
+      dockerStrategy:
+        from:
+          kind: "ImageStreamTag"
+          name: "alpine:3.6"
+      type: Source
+    successfulBuildsHistoryLimit: 5
+  status:
+    lastVersion: 0
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    labels:
+      application: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}-pipeline
+    namespace: ${NAMESPACE}
+  spec:
+    source:
+      type: Git
+      git:
+        uri: ${SOURCE_REPOSITORY_URL}
+        ref: ${SOURCE_REPOSITORY_REF}
+      contextDir: ${CONTEXT_DIR}
+    triggers:
+    - type: ConfigChange
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfilePath: ${PIPELINE_SCRIPT}
+        env:
+        - name: "SOURCE_REPOSITORY_URL"
+          value: "${SOURCE_REPOSITORY_URL}"
+        - name: "SOURCE_REPOSITORY_REF"
+          value: "${SOURCE_REPOSITORY_REF}"
+parameters:
+- description: The name for the application.
+  name: APPLICATION_NAME
+  required: true
+- description: The namespace to deploy into
+  name: NAMESPACE
+  required: true
+- description: Git source URI for application
+  name: SOURCE_REPOSITORY_URL
+  required: true
+  value: https://github.com/Gl4di4torRr/cert-operator.git
+- description: Git branch/tag reference
+  name: SOURCE_REPOSITORY_REF
+  value: fix-build
+- description: Path within Git project to build; empty for root project directory.
+  name: CONTEXT_DIR
+  value:
+- description: Path within Git project pointing to the pipeline run script
+  name: PIPELINE_SCRIPT
+  value: ''
+
+

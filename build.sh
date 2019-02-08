@@ -9,7 +9,7 @@ if ! which go > /dev/null; then
 	exit 1
 fi
 
-BIN_DIR="$(pwd)/build/tmp/_output/bin"
+BIN_DIR="$(pwd)/build/bin"
 mkdir -p ${BIN_DIR}
 PROJECT_NAME="cert-operator"
 REPO_PATH="github.com/redhat-cop/cert-operator"

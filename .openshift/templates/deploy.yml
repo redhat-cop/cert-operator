@@ -15,32 +15,32 @@ objects:
       kind: Cert-Operator
       listKind: Cert-OperatorList
       plural: cert-operators
-      singular: ${NAME}
+      singular: ${APPLICATION_NAME}
     scope: Namespaced
 - kind: Cert-Operator
   apiVersion: openshift.io/v1alpha1
   metadata:
-    name: ${NAME}
+    name: ${APPLICATION_NAME}
 - kind: Deployment
   apiVersion: apps/v1beta1
   metadata:
-    name: ${NAME}
+    name: ${APPLICATION_NAME}
     labels:
-      app: ${NAME}
+      app: ${APPLICATION_NAM}
   spec:
     replicas: 1
     selector:
         matchLabels:
-          app: ${NAME}
+          app: ${APPLICATION_NAM}
     template:
       metadata:
         labels:
-          app: ${NAME}
+          app: ${APPLICATION_NAM}
       spec:
         serviceAccountName: ${SERVICE_ACCOUNT_NAME}
         containers:
-        - name:  ${NAME}
-          image: docker-registry.default.svc:5000/${NAMESPACE}/${NAME}:${TAG}
+        - name:  ${APPLICATION_NAM}
+          image: docker-registry.default.svc:5000/${NAMESPACE}/${APPLICATION_NAM}:${TAG}
           ports:
           - containerPort: 60000
             name: metrics
@@ -53,7 +53,7 @@ objects:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: OPERATOR_NAME
-              value: ${NAME}
+              value: ${APPLICATION_NAM}
             - name: NOTIFIER_TYPE
               value: ${NOTIFIER_TYPE}
             - name: WEBHOOK_URL
@@ -69,7 +69,7 @@ objects:
 parameters:
 - description: "The name assigned to all of the frontend objects defined in this template."
   displayName: "Name"
-  name: NAME
+  name: APPLICATION_NAME
   required: true
   value: "cert-operator"
 - description: "Namespace in which the ImageStreams for operator images are
