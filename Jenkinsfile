@@ -29,8 +29,9 @@ pipeline {
       steps {
        	sh """
           export GOPATH=${WORKSPACE}
-          cp -r * src/github.com/redhat-cop/cert-operator/
-          cd src/github.com/redhat-cop/cert-operator/
+          cd ..
+          cp -R cert-operator/ cert-operator/src/github.com/redhat-cop/cert-operator/
+          cd cert-operator/src/github.com/redhat-cop/cert-operator/
           ls -al
           pwd
           ./build.sh
