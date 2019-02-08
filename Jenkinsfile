@@ -24,22 +24,17 @@ pipeline {
         git url: "${SOURCE_REPOSITORY_URL}"
       }
     }
-  }
 
-  stages {
-  	stage('Build Cert Operator') {
+    stage('Build Cert Operator') {
       steps {
        	sh './build.sh'
       }
-    }
-  }
+  	}
 
-  stages {
   	stage('Build Image') {
       steps {
        	binaryBuild(projectName: "${NAMESPACE}", buildConfigName: "${APP_NAME}", artifactsDirectoryName: "${ARTIFACT_DIRECTORY}")
       }
     }
   }
-
 }
