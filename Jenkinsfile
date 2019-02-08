@@ -15,7 +15,7 @@ openshift.withCluster() {
 pipeline {
 
   agent {
-    label 'maven'
+    label 'jenkins-slave-golang'
   }
 
   stages {
@@ -27,7 +27,10 @@ pipeline {
 
     stage('Build Cert Operator') {
       steps {
-       	sh 'pwd && ls -al && ./build.sh'
+       	sh """
+          export GOPATH=${WORKSPACE}
+          ./build.sh
+        """
       }
   	}
 
