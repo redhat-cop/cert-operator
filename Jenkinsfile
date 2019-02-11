@@ -19,6 +19,16 @@ pipeline {
   }
 
   stages {
+
+    stage('Setup Jenkins Environment') {
+      steps {
+        sh """
+          export GOPATH=${WORKSPACE}
+          mkdir -p ${WORKSPACE}/cert-operator/src/github.com/redhat-cop
+        """
+      }
+    }
+
   	stage('Git Checkout') {
       steps {
         git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}"
@@ -28,12 +38,8 @@ pipeline {
     stage('Build Cert Operator') {
       steps {
        	sh """
-          export GOPATH=${WORKSPACE}
-          cd ..
-          cp -R cert-operator/ cert-operator/src/github.com/redhat-cop/cert-operator/
-          cd cert-operator/src/github.com/redhat-cop/cert-operator/
-          ls -al
           pwd
+          ls -al
           ./build.sh
         """
       }
