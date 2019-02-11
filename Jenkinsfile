@@ -24,27 +24,18 @@ pipeline {
 
   stages {
 
-    stage('Setup Jenkins Environment') {
-      steps {
-        sh """
-          mkdir -p ${WORKSPACE}/src/github.com/redhat-cop
-        """
-      }
-    }
-
   	stage('Git Checkout') {
       steps {
-        dir('src/github.com/redhat-cop') {
-          git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}"
-        }
+        git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}"
       }
     }
 
     stage('Build Cert Operator') {
       steps {
        	sh """
-          echo $GOPATH
           pwd
+          mkdir -p src/github.com/redhat-cop
+          ln -f -s $WORKSPACE $GOPATH/src/github.com/redhat-cop
           ls -al
           ./build.sh
         """
