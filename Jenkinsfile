@@ -34,7 +34,7 @@ pipeline {
 
   	stage('Git Checkout') {
       steps {
-        git checkout scm
+        git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}"
       }
     }
 
