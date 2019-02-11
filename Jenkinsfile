@@ -34,7 +34,9 @@ pipeline {
 
   	stage('Git Checkout') {
       steps {
-        git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}", relativeTargetDir: "src/github.com/redhat-cop"
+        dir('src/github.com/redhat-cop') {
+          git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}"
+        }
       }
     }
 
