@@ -34,8 +34,8 @@ pipeline {
       steps {
        	sh """
           pwd
-          mkdir -p src/github.com/redhat-cop
-          ln -f -s $WORKSPACE $GOPATH/src/github.com/redhat-cop
+          mkdir -p src/github.com/redhat-cop/cert-operator
+          ln -f -s $WORKSPACE $GOPATH/src/github.com/redhat-cop/cert-operator
           ls -al
           ./build.sh
         """
