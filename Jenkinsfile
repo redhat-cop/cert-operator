@@ -18,12 +18,15 @@ pipeline {
     label 'jenkins-slave-golang'
   }
 
+   environment {
+    GOPATH=${WORKSPACE}
+   }
+
   stages {
 
     stage('Setup Jenkins Environment') {
       steps {
         sh """
-          export GOPATH=${WORKSPACE}
           mkdir -p ${WORKSPACE}/cert-operator/src/github.com/redhat-cop
         """
       }
@@ -31,13 +34,14 @@ pipeline {
 
   	stage('Git Checkout') {
       steps {
-        git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}"
+        git checkout scm
       }
     }
 
     stage('Build Cert Operator') {
       steps {
        	sh """
+          echo $GOPATH
           pwd
           ls -al
           ./build.sh
