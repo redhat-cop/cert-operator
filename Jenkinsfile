@@ -27,7 +27,7 @@ pipeline {
     stage('Setup Jenkins Environment') {
       steps {
         sh """
-          mkdir -p ${WORKSPACE}/cert-operator/src/github.com/redhat-cop
+          mkdir -p ${WORKSPACE}/src/github.com/redhat-cop
         """
       }
     }
