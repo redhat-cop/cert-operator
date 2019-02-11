@@ -19,7 +19,7 @@ pipeline {
   }
 
    environment {
-    GOPATH=${WORKSPACE}
+    GOPATH="${WORKSPACE}"
    }
 
   stages {
