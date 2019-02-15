@@ -7,8 +7,9 @@ curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
 pushd /tmp/src
 
+  echo "What's in here: $(ls -l)"
   $GOBIN/dep ensure
 
 popd
 
-${STI_SCRIPTS_PATH=}/assemble
+#${STI_SCRIPTS_PATH=}/assemble
