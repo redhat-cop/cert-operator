@@ -3,7 +3,7 @@
 # Install dep
 export GOBIN=$GOPATH/bin
 mkdir -p $GOBIN
-curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh || exit 1
 
 pushd /tmp/src
 
