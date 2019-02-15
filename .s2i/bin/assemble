@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Install dep
-curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+export GOBIN=$GOPATH/bin
+mkdir -p $GOBIN
+go install dep
 
 pushd /tmp/src
 
