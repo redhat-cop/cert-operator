@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Install dep
+export GOBIN=$GOPATH/bin
+mkdir -p $GOBIN
+curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
+pushd /tmp/src
+
+  dep ensure
+
+popd
+
+${STI_SCRIPTS_PATH=}/assemble
