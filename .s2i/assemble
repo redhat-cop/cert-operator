@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Install dep
+curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
+pushd /tmp/src
+
+  dep ensure
+
+popd
+
+${STI_SCRIPTS_PATH=}/assemble
