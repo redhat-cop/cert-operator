@@ -7,7 +7,7 @@ curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
 pushd /tmp/src
 
-  dep ensure
+  $GOBIN/dep ensure
 
 popd
 
