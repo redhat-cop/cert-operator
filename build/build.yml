@@ -40,8 +40,6 @@ items:
         env:
         - name: IMPORT_URL
           value: github.com/redhat-cop/cert-operator
-        - name: BUILD_LOGLEVEL
-          value: "3"
         from:
           kind: ImageStreamTag
           name: go-toolset-1.10-rhel7:latest
