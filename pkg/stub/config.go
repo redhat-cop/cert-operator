@@ -11,6 +11,7 @@ package stub
 
 import (
 	"os"
+	"encoding/json"
 
 	config "github.com/micro/go-config"
 	"github.com/micro/go-config/source/env"
@@ -100,10 +101,9 @@ func getConfigFile() (configFile string) {
 }
 
 func (c *Config) String() string {
-	var s string
-	// for _, element := range c.Notifiers {
-	// 	s += element.Name() + "\n"
-	// }
-	s += c.Provider.Kind
-	return s
+	out, err := json.Marshal(a)
+	if err != nil {
+			panic (err)
+	}
+	return out
 }

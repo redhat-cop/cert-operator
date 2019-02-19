@@ -29,8 +29,9 @@ func NewHandler(config Config) sdk.Handler {
 		logrus.Infof("Venafi Cert provider.")
 		provider = new(certs.VenafiProvider)
 	default:
-		panic("There was a problem detecting which provider to configure. " +
-			"Provider kind `" + config.Provider.Kind + "` is invalid.")
+		panic("There was a problem detecting which provider to configure. \n" +
+			"\tProvider kind `" + config.Provider.Kind + "` is invalid. \n" +
+			config.String())
 	}
 	return &Handler{
 		config:   config,
