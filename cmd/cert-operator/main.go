@@ -27,9 +27,9 @@ func main() {
 	sdk.ExposeMetricsPort()
 
 	logrus.Infof("Watching Routes on all Namespaces")
-	sdk.Watch("route.openshift.io/v1", "Route", "", 60)
+	sdk.Watch("route.openshift.io/v1", "Route", "", 1000000000)
 	logrus.Infof("Watching Services on all Namespaces")
-	sdk.Watch("v1", "Service", "", 60)
+	sdk.Watch("v1", "Service", "", 1000000000)
 	sdk.Handle(stub.NewHandler(conf))
 	sdk.Run(context.TODO())
 }
