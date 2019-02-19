@@ -1,19 +1,32 @@
 apiVersion: v1
 kind: List
 items:
-- apiVersion: apps/v1
-  kind: Deployment
+- apiVersion: v1
+  kind: DeploymentConfig
   metadata:
     name: cert-operator
+    labels:
+      app: cert-operator
   spec:
     replicas: 1
     selector:
-      matchLabels:
-        name: cert-operator
+      app: cert-operator
+      deploymentconfig: cert-operator
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
     template:
       metadata:
         labels:
-          name: cert-operator
+          app: cert-operator
+          deploymentconfig: cert-operator
       spec:
         containers:
           - name: cert-operator
@@ -21,8 +34,6 @@ items:
             ports:
             - containerPort: 60000
               name: metrics
-            command:
-            - /opt/app-root/cert-operator
             imagePullPolicy: Always
             env:
               - name: WATCH_NAMESPACE
@@ -36,6 +47,16 @@ items:
             volumeMounts:
               - name: config-volume
                 mountPath: /etc/cert-operator
+        triggers:
+        - type: ConfigChange
+        - imageChangeParams:
+            automatic: true
+            containerNames:
+            - cert-operator
+            from:
+              kind: ImageStreamTag
+              name: cert-operator:latest
+          type: ImageChange
         volumes:
           - name: config-volume
             configMap:
@@ -45,6 +66,6 @@ items:
   metadata:
     name: cert-operator-config
   data:
-    config.yml: |
+    config.yaml: |
       provider:
         kind: none
