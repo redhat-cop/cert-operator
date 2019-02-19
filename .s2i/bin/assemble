@@ -42,7 +42,6 @@ if [[ `go list -f {{.Incomplete}}` == "true" ]]; then
             pushd $GOPATH/src/$INSTALL_URL
 
             $GOBIN/dep ensure
-            go get
 
             popd
 
