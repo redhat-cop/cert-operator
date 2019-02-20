@@ -101,9 +101,9 @@ func getConfigFile() (configFile string) {
 }
 
 func (c *Config) String() string {
-	out, err := json.Marshal(a)
+	out, err := json.Marshal(c)
 	if err != nil {
 			panic (err)
 	}
-	return out
+	return string(out)
 }

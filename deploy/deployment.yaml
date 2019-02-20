@@ -42,8 +42,6 @@ items:
                     fieldPath: metadata.namespace
               - name: OPERATOR_NAME
                 value: "cert-operator"
-              - name: CERT_OP_CONFIG
-                value: "/etc/cert-operator/config.yml"
             volumeMounts:
               - name: config-volume
                 mountPath: /etc/cert-operator
