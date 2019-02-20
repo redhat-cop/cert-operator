@@ -22,7 +22,7 @@ dep ensure
 ----
 oc login ...
 oc new-project cert-operator
-oc apply -f deploy/rbac.yaml
+oc process -f deploy/rbac.yaml -p NAMESPACE=cert-operator | oc apply -f-
 export OPERATOR_NAME=cert-operator
 operator-sdk up local
 ----
@@ -32,7 +32,7 @@ operator-sdk up local
 [source,bash]
 ----
 oc process -f build/build.yml | oc apply -f-
-oc process -f deploy/rbac.yaml | oc apply -f-
+oc process -f deploy/rbac.yaml -p NAMESPACE=cert-operator | oc apply -f-
 oc apply -f deploy/deployment.yaml
 ----
 
