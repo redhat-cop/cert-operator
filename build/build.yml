@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Template
+objects:
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    name: go-toolset-1.10-rhel7
+  spec:
+    dockerImageRepository: registry.access.redhat.com/devtools/go-toolset-1.10-rhel7
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: cert-operator
+    name: cert-operator
+  spec:
+    lookupPolicy:
+      local: true
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: cert-operator
+      app: cert-operator
+    name: cert-operator
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: cert-operator:latest
+    source:
+      git:
+        uri: ${SOURCE_CODE_URL}
+        ref: ${SOURCE_CODE_REF}
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: IMPORT_URL
+          value: github.com/redhat-cop/cert-operator
+        - name: BINARY_NAME
+          value: cert-operator
+        from:
+          kind: ImageStreamTag
+          name: go-toolset-1.10-rhel7:latest
+          type: Source
+    triggers:
+    - type: ConfigChange
+    - imageChange: {}
+      type: ImageChange
+parameters:
+- name: SOURCE_CODE_URL
+  value: https://github.com/redhat-cop/cert-operator
+- name: SOURCE_CODE_REF
+  value: master

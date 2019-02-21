@@ -1,10 +1,11 @@
 
 # Temporary Build Files
-tmp/_output
-tmp/_test
+build/_output
+build/_test
 
 # Build dependencies
 vendor/
+Gopkg.lock
 
 # Created by https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
 

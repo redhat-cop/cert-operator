@@ -41,9 +41,13 @@ required = [
 [[constraint]]
   name = "github.com/operator-framework/operator-sdk"
   # The version rule is used for a specific release and the master branch for in between releases.
-  branch = "master"
-  # version = "=v0.0.5"
+  #branch = "v0.0.5"
+  version = "v0.0.5"
 
 [[constraint]]
   name = "github.com/openshift/api"
   version = "3.9.0"
+
+[[constraint]]
+  name = "github.com/micro/go-config"
+  version = "0.7.0"
