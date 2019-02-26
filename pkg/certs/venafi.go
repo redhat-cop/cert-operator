@@ -59,7 +59,6 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 		KeyType:        certificate.KeyTypeRSA,
 		KeyLength:      2048,
 		ChainOption:    certificate.ChainOptionRootLast,
-		KeyPassword:    "newPassw0rd!",
 	}
 
 	//
@@ -100,7 +99,7 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 	pp(pcc)
 
 	var cert = []byte(pcc.Certificate)
-	var privateKey = []byte(pcc.PrivateKey)
+    var privateKey = []byte(pcc.PrivateKey)
 
 	return KeyPair{
 		cert,

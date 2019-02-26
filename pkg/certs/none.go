@@ -1,7 +1,10 @@
 // The None Provider
 package certs
 
-import "time"
+import (
+	"time"	
+	"github.com/sirupsen/logrus"
+)
 
 type NoneProvider struct {
 }
