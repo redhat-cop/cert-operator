@@ -80,14 +80,6 @@ func NewConfig() Config {
 
 	tmpConfig.Scan(&conf)
 
-	// if conf.Notifiers == nil {
-	// 	panic("Notifiers should not be empty")
-	// }
-	//
-	// for index, n := range conf.Notifiers {
-	// 	logrus.Infof("Found notifier: " + string(index) + "=" + n.Name)
-	// }
-
 	return conf
 }
 

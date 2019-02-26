@@ -22,8 +22,10 @@ func NewHandler(config Config) sdk.Handler {
 	var provider certs.Provider
 	switch config.Provider.Kind {
 	case "none":
+		logrus.Infof("None provider.")
 		provider = new(certs.NoneProvider)
 	case "self-signed":
+		logrus.Infof("Self Signed provider.")
 		provider = new(certs.SelfSignedProvider)
 	case "venafi":
 		logrus.Infof("Venafi Cert provider.")
