@@ -2,8 +2,7 @@
 package certs
 
 import (
-	"time"	
-	"github.com/sirupsen/logrus"
+	"time"
 )
 
 type NoneProvider struct {
