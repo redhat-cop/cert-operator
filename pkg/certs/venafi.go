@@ -13,6 +13,11 @@ import (
 type VenafiProvider struct {
 }
 
+/*
+ The Provision function follows the example provided by Venafi.
+ https://github.com/Venafi/vcert/blob/master/example/main.go
+*/
+
 func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.Duration, isCA bool, rsaBits int, ecdsaCurve string) (keypair KeyPair, certError error) {
 	
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
@@ -34,17 +39,11 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 
 	notAfter := notBefore.Add(validFor)
 
-	//
-	// 0. get client instance based on connection config
-	//
 	c, err := vcert.NewClient(tppConfig)
 	if err != nil {
 		t.Fatalf("could not connect to endpoint: %s", err)
 	}
 
-	//
-	// 1.1. compose request object
-	//
 	enrollReq := &certificate.Request{
 		Subject: pkix.Name{
 			CommonName:         host,
@@ -61,26 +60,17 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 		ChainOption:    certificate.ChainOptionRootLast,
 	}
 
-	//
-	// 1.2. generate private key and certificate request (CSR) based on request's options
-	//
 	err = c.GenerateRequest(nil, enrollReq)
 	if err != nil {
 		t.Fatalf("could not generate certificate request: %s", err)
 	}
 
-	//
-	// 1.3. submit certificate request, get request ID as a response
-	//
 	requestID, err := c.RequestCertificate(enrollReq, "")
 	if err != nil {
 		t.Fatalf("could not submit certificate request: %s", err)
 	}
 	t.Printf("Successfully submitted certificate request. Will pickup certificate by ID %s", requestID)
 
-	//
-	// 1.4. retrieve certificate using request ID obtained on previous step, get PEM collection as a response
-	//
 	pickupReq := &certificate.Request{
 		PickupID: requestID,
 		Timeout:  180 * time.Second,
@@ -90,9 +80,6 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 		t.Fatalf("could not retrieve certificate using requestId %s: %s", requestID, err)
 	}
 
-	//
-	// 1.5. (optional) add certificate's private key to PEM collection
-	//
 	pcc.AddPrivateKey(enrollReq.PrivateKey, []byte(enrollReq.KeyPassword))
 
 	t.Printf("Successfully picked up certificate for %s", host)
