@@ -8,6 +8,13 @@ import (
 	t "log"
 	"net/http"
 	"time"
+	"io/ioutil"
+	"os"
+	"github.com/Venafi/vcert/pkg/endpoint"
+	"fmt"
+	"encoding/json"
+	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type VenafiProvider struct {
@@ -19,8 +26,6 @@ type VenafiProvider struct {
 */
 
 func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.Duration, isCA bool, rsaBits int, ecdsaCurve string) (keypair KeyPair, certError error) {
-	
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
 	if len(host) == 0 {
 		return KeyPair{}, NewErrBadHost("host cannot be empty")
@@ -39,7 +44,27 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 
 	notAfter := notBefore.Add(validFor)
 
-	c, err := vcert.NewClient(tppConfig)
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{}
+
+	trustBundle, err := ioutil.ReadFile(os.Getenv("VENAFI_CERT_PATH"))
+	if err != nil {
+		NewCertError("trust bundle is nil")
+	}
+	trustBundlePEM := string(trustBundle)
+
+	fmt.Printf(trustBundlePEM)
+
+	var tlsTppConfig = &vcert.Config{
+			ConnectorType: endpoint.ConnectorTypeTPP,
+			BaseUrl:       os.Getenv("VENAFI_API_URL"),
+			ConnectionTrust: trustBundlePEM,
+			Credentials: &endpoint.Authentication{
+				User:     os.Getenv("VENAFI_USER_NAME"),
+				Password: os.Getenv("VENAFI_PASSWORD")},
+			Zone: os.Getenv("VENAFI_CERT_ZONE"),
+	}
+
+	c, err := vcert.NewClient(tlsTppConfig)
 	if err != nil {
 		t.Fatalf("could not connect to endpoint: %s", err)
 	}
@@ -96,4 +121,21 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 
 func (p *VenafiProvider) Deprovision(host string) error {
 	return nil
+}
+
+var pp = func(a interface{}) {
+	b, err := json.MarshalIndent(a, "", "    ")
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	log.Println(string(b))
+} 
+
+func getSSLFlag() string {
+	if value, ok := os.LookupEnv("SSL_ON"); ok {
+		logrus.Infof("Setting SSL to", value)
+		return value
+	}
+	logrus.Infof("SSL is turned OFF")
+	return "false"
 }
