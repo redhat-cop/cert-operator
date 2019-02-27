@@ -20,20 +20,23 @@ const (
 
 func NewHandler(config Config) sdk.Handler {
 	var provider certs.Provider
+
+	logrus.Infof("SSL turned %s", config.Ssl)
+
 	switch config.Provider.Kind {
-	case "none":
-		logrus.Infof("None provider.")
-		provider = new(certs.NoneProvider)
-	case "self-signed":
-		logrus.Infof("Self Signed provider.")
-		provider = new(certs.SelfSignedProvider)
-	case "venafi":
-		logrus.Infof("Venafi Cert provider.")
-		provider = new(certs.VenafiProvider)
-	default:
-		panic("There was a problem detecting which provider to configure. \n" +
-			"\tProvider kind `" + config.Provider.Kind + "` is invalid. \n" +
-			config.String())
+		case "none":
+			logrus.Infof("None provider.")
+			provider = new(certs.NoneProvider)
+		case "self-signed":
+			logrus.Infof("Self Signed provider.")
+			provider = new(certs.SelfSignedProvider)
+		case "venafi":
+			logrus.Infof("Venafi Cert provider.")
+			provider = new(certs.VenafiProvider)
+		default:
+			panic("There was a problem detecting which provider to configure. \n" +
+				"\tProvider kind `" + config.Provider.Kind + "` is invalid. \n" +
+				config.String())
 	}
 	return &Handler{
 		config:   config,
@@ -192,7 +195,7 @@ func (h *Handler) getCert(host string) certs.KeyPair {
 	keyPair, err := h.provider.Provision(
 		host,
 		time.Now().Format(timeFormat),
-		oneYear, false, 2048, "")
+		oneYear, false, 2048, "", h.config.Ssl)
 	if err != nil {
 		logrus.Errorf("Failed to provision key pair: " + err.Error())
 	}

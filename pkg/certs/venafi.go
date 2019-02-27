@@ -11,10 +11,8 @@ import (
 	"io/ioutil"
 	"os"
 	"github.com/Venafi/vcert/pkg/endpoint"
-	"fmt"
 	"encoding/json"
-	"log"
-	"github.com/sirupsen/logrus"
+	"fmt"
 )
 
 type VenafiProvider struct {
@@ -25,7 +23,7 @@ type VenafiProvider struct {
  https://github.com/Venafi/vcert/blob/master/example/main.go
 */
 
-func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.Duration, isCA bool, rsaBits int, ecdsaCurve string) (keypair KeyPair, certError error) {
+func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.Duration, isCA bool, rsaBits int, ecdsaCurve string, ssl string) (keypair KeyPair, certError error) {
 
 	if len(host) == 0 {
 		return KeyPair{}, NewErrBadHost("host cannot be empty")
@@ -44,27 +42,41 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 
 	notAfter := notBefore.Add(validFor)
 
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{}
+	var tppConfig = &vcert.Config{}
 
-	trustBundle, err := ioutil.ReadFile(os.Getenv("VENAFI_CERT_PATH"))
-	if err != nil {
-		NewCertError("trust bundle is nil")
+	if ssl == "on" {
+		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{}
+
+		trustBundle, err := ioutil.ReadFile(os.Getenv("VENAFI_CERT_PATH"))
+		if err != nil {
+			NewCertError("trust was not found in path")
+		}
+		trustBundlePEM := string(trustBundle)
+
+		tppConfig = &vcert.Config{
+				ConnectorType: endpoint.ConnectorTypeTPP,
+				BaseUrl:       os.Getenv("VENAFI_API_URL"),
+				ConnectionTrust: trustBundlePEM,
+				Credentials: &endpoint.Authentication{
+					User:     os.Getenv("VENAFI_USER_NAME"),
+					Password: os.Getenv("VENAFI_PASSWORD")},
+				Zone: os.Getenv("VENAFI_CERT_ZONE"),
+		}
+
+	} else {
+		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
+		tppConfig = &vcert.Config{
+				ConnectorType: endpoint.ConnectorTypeTPP,
+				BaseUrl:       os.Getenv("VENAFI_API_URL"),
+				Credentials: &endpoint.Authentication{
+					User:     os.Getenv("VENAFI_USER_NAME"),
+					Password: os.Getenv("VENAFI_PASSWORD")},
+				Zone: os.Getenv("VENAFI_CERT_ZONE"),
+		}
 	}
-	trustBundlePEM := string(trustBundle)
 
-	fmt.Printf(trustBundlePEM)
-
-	var tlsTppConfig = &vcert.Config{
-			ConnectorType: endpoint.ConnectorTypeTPP,
-			BaseUrl:       os.Getenv("VENAFI_API_URL"),
-			ConnectionTrust: trustBundlePEM,
-			Credentials: &endpoint.Authentication{
-				User:     os.Getenv("VENAFI_USER_NAME"),
-				Password: os.Getenv("VENAFI_PASSWORD")},
-			Zone: os.Getenv("VENAFI_CERT_ZONE"),
-	}
-
-	c, err := vcert.NewClient(tlsTppConfig)
+	c, err := vcert.NewClient(tppConfig)
 	if err != nil {
 		t.Fatalf("could not connect to endpoint: %s", err)
 	}
@@ -128,14 +140,5 @@ var pp = func(a interface{}) {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	log.Println(string(b))
+	t.Println(string(b))
 } 
-
-func getSSLFlag() string {
-	if value, ok := os.LookupEnv("SSL_ON"); ok {
-		logrus.Infof("Setting SSL to", value)
-		return value
-	}
-	logrus.Infof("SSL is turned OFF")
-	return "false"
-}

@@ -26,6 +26,7 @@ type Config struct {
 	//	Notifiers []notifier.Notifier  `json:"notifiers"`
 	Provider certs.ProviderConfig `json:"provider"`
 	General  GeneralConfig        `json:"general"`
+	Ssl string 	      			  `json:"ssl"`
 }
 
 type GeneralConfig struct {
@@ -54,7 +55,8 @@ const (
     },
     "provider": {
       "kind": "none"
-    }
+    },
+    "ssl": "off"
   }`
 )
 
@@ -85,10 +87,10 @@ func NewConfig() Config {
 
 func getConfigFile() (configFile string) {
 	if value, ok := os.LookupEnv("CERT_OP_CONFIG"); ok {
-		logrus.Infof("Loading config file from %v", value)
+		logrus.Infof("Loading custom config file from %v", value)
 		return value
 	}
-	logrus.Infof("Loading config file from %v", defaultConfigFile)
+	logrus.Infof("Loading default config file from %v", defaultConfigFile)
 	return defaultConfigFile
 }
 

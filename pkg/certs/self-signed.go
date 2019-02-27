@@ -17,7 +17,7 @@ import (
 type SelfSignedProvider struct {
 }
 
-func (p *SelfSignedProvider) Provision(host string, validFrom string, validFor time.Duration, isCA bool, rsaBits int, ecdsaCurve string) (keypair KeyPair, certError error) {
+func (p *SelfSignedProvider) Provision(host string, validFrom string, validFor time.Duration, isCA bool, rsaBits int, ecdsaCurve string, ssl string) (keypair KeyPair, certError error) {
 
 	if len(host) == 0 {
 		return KeyPair{}, NewErrBadHost("host cannot be empty")
