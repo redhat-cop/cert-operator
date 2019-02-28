@@ -13,7 +13,6 @@ import (
 	"github.com/Venafi/vcert/pkg/endpoint"
 	"encoding/json"
 	"fmt"
-	"github.com/sirupsen/logrus"
 )
 
 type VenafiProvider struct {
@@ -25,12 +24,6 @@ type VenafiProvider struct {
 */
 
 func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.Duration, isCA bool, rsaBits int, ecdsaCurve string, ssl string) (keypair KeyPair, certError error) {
-
-	if ssl == "true" {
-		logrus.Infof("SSL Verified")
-	} else {
-		logrus.Infof("SSL Not Verified")
-	}
 
 	if len(host) == 0 {
 		return KeyPair{}, NewErrBadHost("host cannot be empty")
@@ -50,7 +43,6 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 	notAfter := notBefore.Add(validFor)
 
 	var tppConfig = &vcert.Config{}
-
 	if ssl == "true" {
 		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{}
 

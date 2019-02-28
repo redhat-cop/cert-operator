@@ -21,6 +21,12 @@ const (
 func NewHandler(config Config) sdk.Handler {
 	var provider certs.Provider
 
+	if config.Provider.Ssl == "true" {
+		logrus.Infof("SSL Verified")
+	} else {
+		logrus.Infof("SSL Not Verified")
+	}
+
 	switch config.Provider.Kind {
 		case "none":
 			logrus.Infof("None provider.")
