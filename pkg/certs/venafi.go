@@ -51,7 +51,7 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 
 	var tppConfig = &vcert.Config{}
 
-	if ssl == "on" {
+	if ssl == "true" {
 		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{}
 
 		trustBundle, err := ioutil.ReadFile(os.Getenv("VENAFI_CA_PATH"))
