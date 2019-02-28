@@ -15,6 +15,7 @@ type Provider interface {
 
 type ProviderConfig struct {
 	Kind string `json:"kind"`
+	Ssl string  `json:"ssl"`
 }
 
 type KeyPair struct {

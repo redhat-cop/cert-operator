@@ -21,8 +21,6 @@ const (
 func NewHandler(config Config) sdk.Handler {
 	var provider certs.Provider
 
-	logrus.Infof("SSL turned %s", config.Ssl)
-
 	switch config.Provider.Kind {
 		case "none":
 			logrus.Infof("None provider.")
@@ -195,7 +193,7 @@ func (h *Handler) getCert(host string) certs.KeyPair {
 	keyPair, err := h.provider.Provision(
 		host,
 		time.Now().Format(timeFormat),
-		oneYear, false, 2048, "", h.config.Ssl)
+		oneYear, false, 2048, "", h.config.Provider.Ssl)
 	if err != nil {
 		logrus.Errorf("Failed to provision key pair: " + err.Error())
 	}

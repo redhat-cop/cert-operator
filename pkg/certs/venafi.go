@@ -13,6 +13,7 @@ import (
 	"github.com/Venafi/vcert/pkg/endpoint"
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 )
 
 type VenafiProvider struct {
@@ -24,6 +25,12 @@ type VenafiProvider struct {
 */
 
 func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.Duration, isCA bool, rsaBits int, ecdsaCurve string, ssl string) (keypair KeyPair, certError error) {
+
+	if config.Provider.Ssl == "true" {
+		logrus.Infof("SSL Verified")
+	} else {
+		logrus.Infof("SSL Not Verified")
+	}
 
 	if len(host) == 0 {
 		return KeyPair{}, NewErrBadHost("host cannot be empty")
@@ -47,7 +54,7 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 	if ssl == "on" {
 		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{}
 
-		trustBundle, err := ioutil.ReadFile(os.Getenv("VENAFI_CERT_PATH"))
+		trustBundle, err := ioutil.ReadFile(os.Getenv("VENAFI_CA_PATH"))
 		if err != nil {
 			NewCertError("trust was not found in path")
 		}
@@ -84,11 +91,11 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 	enrollReq := &certificate.Request{
 		Subject: pkix.Name{
 			CommonName:         host,
-			Organization:       []string{"Venafi.com"},
-			OrganizationalUnit: []string{"Integration Team"},
-			Locality:           []string{"Salt Lake"},
-			Province:           []string{"Salt Lake"},
-			Country:            []string{"US"},
+			Organization:       []string{os.Getenv("VENAFI_ORGANIZATION")},
+			OrganizationalUnit: []string{os.Getenv("VENAFI_ORGANIZATION_UNIT")},
+			Locality:           []string{os.Getenv("VENAFI_LOCALITY")},
+			Province:           []string{os.Getenv("VENAFI_PROVINCE")},
+			Country:            []string{os.Getenv("VENAFI_COUNTRY")},
 		},
 		DNSNames:       []string{host},
 		CsrOrigin:      certificate.LocalGeneratedCSR,

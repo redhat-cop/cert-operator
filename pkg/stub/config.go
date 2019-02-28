@@ -26,7 +26,6 @@ type Config struct {
 	//	Notifiers []notifier.Notifier  `json:"notifiers"`
 	Provider certs.ProviderConfig `json:"provider"`
 	General  GeneralConfig        `json:"general"`
-	Ssl string 	      			  `json:"ssl"`
 }
 
 type GeneralConfig struct {
@@ -55,8 +54,8 @@ const (
     },
     "provider": {
       "kind": "none"
+      "ssl": "off"
     },
-    "ssl": "off"
   }`
 )
 

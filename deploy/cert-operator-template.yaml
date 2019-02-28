@@ -68,6 +68,16 @@ objects:
               value: ${VENAFI_CERT_ZONE}
             - name: VENAFI_CERT_PATH
               value: ${VENAFI_CERT_PATH}
+            - name: VENAFI_ORGANIZATION
+              value: ${VENAFI_ORGANIZATION}
+            - name: VENAFI_ORGANIZATION_UNIT
+              value: ${VENAFI_ORGANIZATION_UNIT}
+            - name: VENAFI_LOCALITY
+              value: ${VENAFI_LOCALITY}
+            - name: VENAFI_PROVINCE
+              value: ${VENAFI_PROVINCE}
+            - name: VENAFI_COUNTRY
+              value: ${VENAFI_COUNTRY}
 parameters:
 - description: "The name assigned to all of the frontend objects defined in this template."
   displayName: "Name"
@@ -115,3 +125,23 @@ parameters:
   required: true
 - description: "Path to cert"
   name: VENAFI_CERT_PATH
+- description: "Venafi Organization"
+  name: VENAFI_ORGANIZATION
+  value: "venafi.com"
+  required: true
+- description: "Venafi Organization Unit"
+  name: VENAFI_ORGANIZATION_UNIT
+  value: "Integration Team"
+  required: true
+- description: "Venafi Locality"
+  name: VENAFI_LOCALITY
+  value: "Salt Lake"
+  required: true
+- description: "Venafi Locality"
+  name: VENAFI_PROVINCE
+  value: "Salt Lake"
+  required: true
+- description: "Venafi Country"
+  name: VENAFI_COUNTRY
+  value: "US"
+  required: true
