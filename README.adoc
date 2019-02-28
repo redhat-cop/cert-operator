@@ -95,6 +95,7 @@ export VENAFI_CERT_ZONE='myzone'
 
 Optional:
 ----
+export CERT_OP_CONFIG=/etc/cert-operator/config.yaml
 export VENAFI_CERT_PATH=/path/to/cert
 ----
 
