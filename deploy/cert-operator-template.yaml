@@ -66,6 +66,8 @@ objects:
               value: ${VENAFI_PASSWORD}
             - name: VENAFI_CERT_ZONE
               value: ${VENAFI_CERT_ZONE}
+            - name: VENAFI_CERT_PATH
+              value: ${VENAFI_CERT_PATH}
 parameters:
 - description: "The name assigned to all of the frontend objects defined in this template."
   displayName: "Name"
@@ -111,3 +113,5 @@ parameters:
   name: SERVICE_ACCOUNT_NAME
   value: "serviceaccountname"
   required: true
+- description: "Path to cert"
+  name: VENAFI_CERT_PATH

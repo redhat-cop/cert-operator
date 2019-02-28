@@ -74,6 +74,35 @@ Configuring which provider is used is a matter of adding the following to your c
 ----
 provider:
   kind: <name>
+ssl: <on/off>
+----
+
+=== Venafi Provider
+
+The Venafi Provider allows the certificate operator to plug into Venafi and store the certificates in Venafi.
+
+==== Local Venafi Run
+
+Required:
+
+----
+export OPERATOR_NAME=cert-operator
+export VENAFI_API_URL=https://myvenafi.com/api
+export VENAFI_USER_NAME=myusername
+export VENAFI_PASSWORD=mypassword
+export VENAFI_CERT_ZONE='myzone'
+----
+
+Optional:
+----
+export VENAFI_CERT_PATH=/path/to/cert
+----
+
+----
+oc login ...
+oc new-project cert-operator
+oc process -f deploy/rbac.yaml -p NAMESPACE=cert-operator | oc apply -f-
+operator-sdk up local
 ----
 
 === Notifications
