@@ -26,7 +26,7 @@ type VenafiProvider struct {
 
 func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.Duration, isCA bool, rsaBits int, ecdsaCurve string, ssl string) (keypair KeyPair, certError error) {
 
-	if config.Provider.Ssl == "true" {
+	if ssl == "true" {
 		logrus.Infof("SSL Verified")
 	} else {
 		logrus.Infof("SSL Not Verified")

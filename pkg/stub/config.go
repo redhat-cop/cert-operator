@@ -53,9 +53,9 @@ const (
       }
     },
     "provider": {
-      "kind": "none"
-      "ssl": "off"
-    },
+      "kind": "none",
+      "ssl": "false"
+    }
   }`
 )
 
