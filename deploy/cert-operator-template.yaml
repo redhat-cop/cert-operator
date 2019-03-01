@@ -78,6 +78,18 @@ objects:
               value: ${VENAFI_PROVINCE}
             - name: VENAFI_COUNTRY
               value: ${VENAFI_COUNTRY}
+        volumes:
+        - name: "cert-operator-data"
+          persistentVolumeClaim:
+            claimName: "cert-operator"
+- apiVersion: v1
+  stringData:
+    path: "/path/to/ca"
+  data:
+  kind: Secret
+  metadata:
+    name: venafi-ca
+  type: kubernetes.io/basic-auth
 parameters:
 - description: "The name assigned to all of the frontend objects defined in this template."
   displayName: "Name"
