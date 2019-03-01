@@ -3,22 +3,18 @@
 
 toc::[]
 
+== Overview
+
 The Venafi Provider allows the certificate operator to plug into Venafi and store the certificates in Venafi.
 
-== Prerequisites
+== Additional Setup
 
-* link:https://github.com/operator-framework/operator-sdk/tree/v0.0.6[Operator SDK v0.0.6]
-* link:https://golang.github.io/dep/docs/installation.html[Dep]
+In order to setup the venafi provider, you will need a link:https://pki.venafi.com/venafi-cloud/[venafi server]
+before running the venafi provider.
 
-== Installation
+== Provider Configuration
 
-[source,bash]
-----
-git clone [this repo]
-dep ensure
-----
-
-==== Local Venafi Run
+In order to run the venafi provider, you will need to setup the enviroment variables.
 
 *Required:*
 [source,bash]
