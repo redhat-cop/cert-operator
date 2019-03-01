@@ -14,7 +14,7 @@ before running the venafi provider.
 
 == Provider Configuration
 
-- 1. Export the Environment variables
+Export the Environment variables
 
 *Required:*
 [source,bash]
@@ -38,14 +38,14 @@ export VENAFI_PROVINCE=myprovince
 export VENAFI_COUNTRY=mycountry
 ----
 
-* 2. Create the venafi secret
+Create the venafi secret
 
 [source,bash]
 ----
 oc create secret generic venafi-ca --from-file=/etc/ssl/certs/venafi.crt
 ----
 
-** 3. Deploy the cert-operator to OpenShift
+Deploy the cert-operator to OpenShift
 
 [source,bash]
 ----
