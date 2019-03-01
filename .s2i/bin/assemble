@@ -55,9 +55,9 @@ if [[ `go list -f {{.Incomplete}}` == "true" ]]; then
 
         go install -i $INSTALL_URL
 
-        mv $GOPATH/bin/$BINARY_NAME /opt/app-root/cert-operator
+        mkdir -p /opt/app-root/src/bin
 
-        export PATH=$PATH:/opt/app-root
+        mv $GOPATH/bin/$BINARY_NAME /opt/app-root/src/bin/cert-operator
 
         popd
 
