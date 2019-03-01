@@ -66,6 +66,39 @@ objects:
               value: ${VENAFI_PASSWORD}
             - name: VENAFI_CERT_ZONE
               value: ${VENAFI_CERT_ZONE}
+            - name: VENAFI_CERT_PATH
+              value: ${VENAFI_CERT_PATH}
+            - name: VENAFI_ORGANIZATION
+              value: ${VENAFI_ORGANIZATION}
+            - name: VENAFI_ORGANIZATION_UNIT
+              value: ${VENAFI_ORGANIZATION_UNIT}
+            - name: VENAFI_LOCALITY
+              value: ${VENAFI_LOCALITY}
+            - name: VENAFI_PROVINCE
+              value: ${VENAFI_PROVINCE}
+            - name: VENAFI_COUNTRY
+              value: ${VENAFI_COUNTRY}
+          volumeMounts:
+              - name: config-volume
+                mountPath: /etc/cert-operator
+              - name: venafi-ca-volume
+                mountPath: /etc/ssl/certs
+        volumes:
+          - name: config-volume
+            configMap:
+              name: cert-operator-config
+          - name: venafi-ca-volume
+            secret:
+              secretName: venafi-ca
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: cert-operator-config
+  data:
+    config.yaml: |
+      provider:
+        kind: venafi
+        ssl: 'false'
 parameters:
 - description: "The name assigned to all of the frontend objects defined in this template."
   displayName: "Name"
@@ -77,7 +110,7 @@ parameters:
     different namespace/project."
   name: NAMESPACE
   required: true
-  value: "infrastructure-jobs"
+  value: "cert-operator"
 - description: "The tag for the iamge"
   name: TAG
   displayName: "Image Tag"
@@ -85,19 +118,19 @@ parameters:
   value: "latest"
 - description: "The Venafi API URL"
   name: VENAFI_API_URL
-  value: "https://venafi-tppurl/vedsdk"
+  value: "venafi.com/api"
   required: true
 - description: "The Venafi user name"
   name: VENAFI_USER_NAME
-  value: "venafiusername"
+  value: "username"
   required: true
 - description: "The Venafi password"
   name: VENAFI_PASSWORD
-  value: "venafipassword"
+  value: "password"
   required: true
 - description: "The Venafi cert zone"
   name: VENAFI_CERT_ZONE
-  value: "ABC Company\\Dev"
+  value: "certzone"
   required: true
 - description: "The Slack webhook"
   name: WEBHOOK_URL
@@ -109,5 +142,27 @@ parameters:
   required: false
 - description: "Service account name"
   name: SERVICE_ACCOUNT_NAME
-  value: "serviceaccountname"
+  value: "default"
+  required: true
+- description: "Path to cert"
+  name: VENAFI_CERT_PATH
+- description: "Venafi Organization"
+  name: VENAFI_ORGANIZATION
+  value: "venafi.com"
+  required: true
+- description: "Venafi Organization Unit"
+  name: VENAFI_ORGANIZATION_UNIT
+  value: "Integration Team"
+  required: true
+- description: "Venafi Locality"
+  name: VENAFI_LOCALITY
+  value: "Salt Lake"
+  required: true
+- description: "Venafi Locality"
+  name: VENAFI_PROVINCE
+  value: "Salt Lake"
+  required: true
+- description: "Venafi Country"
+  name: VENAFI_COUNTRY
+  value: "US"
   required: true

@@ -74,6 +74,7 @@ Configuring which provider is used is a matter of adding the following to your c
 ----
 provider:
   kind: <name>
+  ssl: <true/false>
 ----
 
 === Notifications

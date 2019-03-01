@@ -9,12 +9,13 @@ import (
 )
 
 type Provider interface {
-	Provision(host string, validFrom string, validFor time.Duration, isCA bool, rsaBits int, ecdsaCurve string) (KeyPair, error)
+	Provision(host string, validFrom string, validFor time.Duration, isCA bool, rsaBits int, ecdsaCurve string, ssl string) (KeyPair, error)
 	Deprovision(host string) error
 }
 
 type ProviderConfig struct {
 	Kind string `json:"kind"`
+	Ssl string  `json:"ssl"`
 }
 
 type KeyPair struct {

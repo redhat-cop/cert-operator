@@ -53,7 +53,8 @@ const (
       }
     },
     "provider": {
-      "kind": "none"
+      "kind": "none",
+      "ssl": "false"
     }
   }`
 )
@@ -80,23 +81,15 @@ func NewConfig() Config {
 
 	tmpConfig.Scan(&conf)
 
-	// if conf.Notifiers == nil {
-	// 	panic("Notifiers should not be empty")
-	// }
-	//
-	// for index, n := range conf.Notifiers {
-	// 	logrus.Infof("Found notifier: " + string(index) + "=" + n.Name)
-	// }
-
 	return conf
 }
 
 func getConfigFile() (configFile string) {
 	if value, ok := os.LookupEnv("CERT_OP_CONFIG"); ok {
-		logrus.Infof("Loading config file from %v", value)
+		logrus.Infof("Loading custom config file from %v", value)
 		return value
 	}
-	logrus.Infof("Loading config file from %v", defaultConfigFile)
+	logrus.Infof("Loading default config file from %v", defaultConfigFile)
 	return defaultConfigFile
 }
 

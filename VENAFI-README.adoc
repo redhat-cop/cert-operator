@@ -1,0 +1,57 @@
+= Venafi Provider
+:toc: macro
+
+toc::[]
+
+== Overview
+
+The Venafi Provider allows the certificate operator to plug into a Venafi server so Venafi can store the certificates.
+
+== Additional Setup
+
+In order to setup the venafi provider, you will need a link:https://pki.venafi.com/venafi-cloud/[venafi server]
+before running the venafi provider.
+
+== Provider Configuration
+
+Export the Environment variables
+
+*Required:*
+[source,bash]
+----
+export OPERATOR_NAME=cert-operator
+export VENAFI_API_URL=https://myvenafi.com/api
+export VENAFI_USER_NAME=myusername
+export VENAFI_PASSWORD=mypassword
+export VENAFI_CERT_ZONE='myzone'
+----
+
+*Optional:*
+[source,bash]
+----
+export CERT_OP_CONFIG=/etc/cert-operator/config.yaml
+export VENAFI_CA_PATH=/path/to/cert
+export VENAFI_ORGANIZATION=myorganization
+export VENAFI_ORGANIZATION_UNIT=myorganizationunit
+export VENAFI_LOCALITY=mylocality
+export VENAFI_PROVINCE=myprovince
+export VENAFI_COUNTRY=mycountry
+----
+
+Create the venafi secret
+
+[source,bash]
+----
+oc create secret generic venafi-ca --from-file=/etc/ssl/certs/venafi.crt
+----
+
+Deploy the cert-operator to OpenShift
+
+[source,bash]
+----
+oc login ...
+oc new-project cert-operator
+oc process -f build/build.yml -p NAMESPACE=cert-operator | oc apply -f-
+oc process -f deploy/rbac.yaml -p NAMESPACE=cert-operator | oc apply -f-
+oc process -f deploy/venafi-template.yaml -p NAMESPACE=cert-operator | oc apply -f-
+----
