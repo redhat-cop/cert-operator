@@ -67,4 +67,3 @@ items:
     config.yaml: |
       provider:
         kind: none
-        ssl: off
