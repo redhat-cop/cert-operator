@@ -5,7 +5,7 @@ toc::[]
 
 == Overview
 
-The Venafi Provider allows the certificate operator to plug into Venafi and store the certificates in Venafi.
+The Venafi Provider allows the certificate operator to plug into a Venafi server so Venafi can store the certificates.
 
 == Additional Setup
 
@@ -44,13 +44,4 @@ oc login ...
 oc new-project cert-operator
 oc process -f deploy/rbac.yaml -p NAMESPACE=cert-operator | oc apply -f-
 operator-sdk up local
-----
-
-== Deployment to OpenShift
-
-[source,bash]
-----
-oc process -f build/build.yml | oc apply -f-
-oc process -f deploy/rbac.yaml -p NAMESPACE=cert-operator | oc apply -f-
-oc apply -f deploy/cert-operator-template.yaml
 ----
