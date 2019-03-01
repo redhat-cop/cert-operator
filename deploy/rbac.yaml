@@ -12,6 +12,7 @@ objects:
         attributeRestrictions: null
         resources:
         - services
+        - routes
         verbs:
         - create
   - apiVersion: v1
@@ -28,9 +29,9 @@ objects:
   - apiVersion: v1
     kind: ClusterRoleBinding
     metadata:
-      name: cert-operator-cluster-reader
+      name: cert-operator-cluster-admin
     roleRef:
-      name: cluster-reader
+      name: cluster-admin
     subjects:
     - kind: ServiceAccount
       name: default
