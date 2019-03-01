@@ -55,7 +55,7 @@ if [[ `go list -f {{.Incomplete}}` == "true" ]]; then
 
         go install -i $INSTALL_URL
 
-        mv $GOPATH/bin/$BINARY_NAME /opt/app-root/gobinary
+        mv $GOPATH/bin/$BINARY_NAME /opt/app-root/cert-operator
 
         export PATH=$PATH:/opt/app-root/gobinary
 
