@@ -14,7 +14,7 @@ before running the venafi provider.
 
 == Provider Configuration
 
-In order to run the venafi provider, you will need to setup the enviroment variables.
+1. Export the Environment variables
 
 *Required:*
 [source,bash]
@@ -38,10 +38,20 @@ export VENAFI_PROVINCE=myprovince
 export VENAFI_COUNTRY=mycountry
 ----
 
+2. Create the venafi secret
+
+[source,bash]
+----
+oc create secret generic venafi-ca --from-file=/etc/ssl/certs/venafi.crt
+----
+
+3. Deploy the cert-operator to OpenShift
+
 [source,bash]
 ----
 oc login ...
 oc new-project cert-operator
+oc process -f build/build.yml -p NAMESPACE=cert-operator | oc apply -f-
 oc process -f deploy/rbac.yaml -p NAMESPACE=cert-operator | oc apply -f-
-operator-sdk up local
+oc process -f deploy/venafi-template.yaml -p NAMESPACE=cert-operator | oc apply -f-
 ----
