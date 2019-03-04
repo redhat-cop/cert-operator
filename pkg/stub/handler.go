@@ -84,13 +84,23 @@ func (h *Handler) handleRoute(route *v1.Route) error {
 
 		// Retreive cert from provider
 		keyPair := h.getCert(route.Spec.Host)
-
 		var routeCopy *v1.Route
 		routeCopy = route.DeepCopy()
 		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "no"
 		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Expiry] = keyPair.Expiry.Format(timeFormat)
+
+		//var termination string
+
+		var termination v1.TLSTerminationType
+		config := route.Spec.TLS
+		if config == nil {
+			termination = v1.TLSTerminationEdge
+		} else {
+			termination = route.Spec.TLS.Termination
+		}
+
 		routeCopy.Spec.TLS = &v1.TLSConfig{
-			Termination: v1.TLSTerminationEdge,
+			Termination: termination,
 			Certificate: string(keyPair.Cert),
 			Key:         string(keyPair.Key),
 		}
