@@ -89,11 +89,22 @@ func (h *Handler) handleRoute(route *v1.Route) error {
 		routeCopy = route.DeepCopy()
 		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "no"
 		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Expiry] = keyPair.Expiry.Format(timeFormat)
-		routeCopy.Spec.TLS = &v1.TLSConfig{
-			Termination: v1.TLSTerminationEdge,
-			Certificate: string(keyPair.Cert),
-			Key:         string(keyPair.Key),
+
+		var insecureEdgeTerminationPolicyType v1.InsecureEdgeTerminationPolicyType
+		config := route.Spec.TLS
+		if config == nil {
+			insecureEdgeTerminationPolicyType = v1.InsecureEdgeTerminationPolicyNone
+		} else {
+			insecureEdgeTerminationPolicyType = route.Spec.TLS.InsecureEdgeTerminationPolicy
 		}
+
+		routeCopy.Spec.TLS = &v1.TLSConfig{
+			Termination: 				    v1.TLSTerminationEdge,
+			Certificate:                    string(keyPair.Cert),
+			Key:         					string(keyPair.Key),
+			InsecureEdgeTerminationPolicy: 	insecureEdgeTerminationPolicyType,
+		}
+
 		updateRoute(routeCopy)
 
 		logrus.Infof("Updated route %v/%v with new certificate",
