@@ -10,8 +10,8 @@ notifiers:
 package stub
 
 import (
-	"os"
 	"encoding/json"
+	"os"
 
 	config "github.com/micro/go-config"
 	"github.com/micro/go-config/source/env"
@@ -33,10 +33,11 @@ type GeneralConfig struct {
 }
 
 type AnnotationConfig struct {
-	Status       string `json:"status"`
-	StatusReason string `json:"status-reason"`
-	Expiry       string `json:"expiry"`
-	Format       string `json:"format"`
+	Status        string `json:"status"`
+	StatusReason  string `json:"status-reason"`
+	Expiry        string `json:"expiry"`
+	Format        string `json:"format"`
+	NeedCertValue string `json:"need-cert-value"`
 }
 
 const (
@@ -49,7 +50,8 @@ const (
         "status": "openshift.io/cert-ctl-status",
         "status-reason": "openshift.io/cert-ctl-status-reason",
         "expiry": "openshift.io/cert-ctl-expires",
-        "format": "openshift.io/cert-ctl-format"
+        "format": "openshift.io/cert-ctl-format",
+				"need-cert-value": "new"
       }
     },
     "provider": {
@@ -96,7 +98,7 @@ func getConfigFile() (configFile string) {
 func (c *Config) String() string {
 	out, err := json.Marshal(c)
 	if err != nil {
-			panic (err)
+		panic(err)
 	}
 	return string(out)
 }

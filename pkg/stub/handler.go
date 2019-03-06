@@ -28,19 +28,19 @@ func NewHandler(config Config) sdk.Handler {
 	}
 
 	switch config.Provider.Kind {
-		case "none":
-			logrus.Infof("None provider.")
-			provider = new(certs.NoneProvider)
-		case "self-signed":
-			logrus.Infof("Self Signed provider.")
-			provider = new(certs.SelfSignedProvider)
-		case "venafi":
-			logrus.Infof("Venafi Cert provider.")
-			provider = new(certs.VenafiProvider)
-		default:
-			panic("There was a problem detecting which provider to configure. \n" +
-				"\tProvider kind `" + config.Provider.Kind + "` is invalid. \n" +
-				config.String())
+	case "none":
+		logrus.Infof("None provider.")
+		provider = new(certs.NoneProvider)
+	case "self-signed":
+		logrus.Infof("Self Signed provider.")
+		provider = new(certs.SelfSignedProvider)
+	case "venafi":
+		logrus.Infof("Venafi Cert provider.")
+		provider = new(certs.VenafiProvider)
+	default:
+		panic("There was a problem detecting which provider to configure. \n" +
+			"\tProvider kind `" + config.Provider.Kind + "` is invalid. \n" +
+			config.String())
 	}
 	return &Handler{
 		config:   config,
@@ -71,7 +71,7 @@ func (h *Handler) handleRoute(route *v1.Route) error {
 		return nil
 	}
 
-	if route.ObjectMeta.Annotations[h.config.General.Annotations.Status] == "new" {
+	if route.ObjectMeta.Annotations[h.config.General.Annotations.Status] == h.config.General.Annotations.NeedCertValue {
 		// Notfiy of certificate awaiting creation
 		logrus.Infof("Found a route waiting for a cert : %v/%v",
 			route.ObjectMeta.Namespace,
@@ -117,7 +117,7 @@ func (h *Handler) handleService(service *corev1.Service) error {
 		return nil
 	}
 
-	if service.ObjectMeta.Annotations[h.config.General.Annotations.Status] == "new" {
+	if service.ObjectMeta.Annotations[h.config.General.Annotations.Status] == h.config.General.Annotations.NeedCertValue {
 		logrus.Infof("Found a service waiting for a cert : %v/%v",
 			service.ObjectMeta.Namespace,
 			service.ObjectMeta.Name)

@@ -1,0 +1,7 @@
+general:
+  annotations:
+    status: myorg.io/cert-status
+    status-reason: myorg.io/cert-reason
+    expiry: myorg.io/cert-expires
+    format: myorg.io/cert-format
+    need-cert-value: need
