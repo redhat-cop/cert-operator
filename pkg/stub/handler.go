@@ -89,21 +89,20 @@ func (h *Handler) handleRoute(route *v1.Route) error {
 		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "no"
 		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Expiry] = keyPair.Expiry.Format(timeFormat)
 
-		//var termination string
-
-		var termination v1.TLSTerminationType
-		config := route.Spec.TLS
+		config := routeCopy.Spec.TLS
 		if config == nil {
-			termination = v1.TLSTerminationEdge
+			// Create new basic TLS Config
+			routeCopy.Spec.TLS = &v1.TLSConfig{
+				Termination: v1.TLSTerminationEdge,
+				Certificate: string(keyPair.Cert),
+				Key:         string(keyPair.Key),
+			}
 		} else {
-			termination = route.Spec.TLS.Termination
+			// TLS Config already exists, so we'll just inject a new Cert & Key
+			routeCopy.Spec.TLS.Certificate = string(keyPair.Cert)
+			routeCopy.Spec.TLS.Key = string(keyPair.Key)
 		}
 
-		routeCopy.Spec.TLS = &v1.TLSConfig{
-			Termination: termination,
-			Certificate: string(keyPair.Cert),
-			Key:         string(keyPair.Key),
-		}
 		updateRoute(routeCopy)
 
 		logrus.Infof("Updated route %v/%v with new certificate",
