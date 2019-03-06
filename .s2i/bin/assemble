@@ -57,7 +57,7 @@ if [[ `go list -f {{.Incomplete}}` == "true" ]]; then
 
         mkdir -p /opt/app-root/src/bin
 
-        mv $GOPATH/bin/$BINARY_NAME /opt/app-root/src/bin/gobinary
+        mv $GOPATH/bin/$BINARY_NAME /opt/app-root/gobinary
 
         popd
 
