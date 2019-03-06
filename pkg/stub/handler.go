@@ -89,22 +89,18 @@ func (h *Handler) handleRoute(route *v1.Route) error {
 		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "no"
 		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Expiry] = keyPair.Expiry.Format(timeFormat)
 
-		var insecureEdgeTerminationPolicyType v1.InsecureEdgeTerminationPolicyType
-		var termination v1.TLSTerminationType
-		config := route.Spec.TLS
+		config := routeCopy.Spec.TLS
 		if config == nil {
-			insecureEdgeTerminationPolicyType = v1.InsecureEdgeTerminationPolicyNone
-			termination = v1.TLSTerminationEdge
+			// Create new basic TLS Config
+			routeCopy.Spec.TLS = &v1.TLSConfig{
+				Termination: v1.TLSTerminationEdge,
+				Certificate: string(keyPair.Cert),
+				Key:         string(keyPair.Key),
+			}
 		} else {
-			insecureEdgeTerminationPolicyType = route.Spec.TLS.InsecureEdgeTerminationPolicy
-			termination = route.Spec.TLS.Termination
-		}
-
-		routeCopy.Spec.TLS = &v1.TLSConfig{
-			Termination: 				    termination,
-			Certificate:                    string(keyPair.Cert),
-			Key:         					string(keyPair.Key),
-			InsecureEdgeTerminationPolicy: 	insecureEdgeTerminationPolicyType,
+			// TLS Config already exists, so we'll just inject a new Cert & Key
+			routeCopy.Spec.TLS.Certificate = string(keyPair.Cert)
+			routeCopy.Spec.TLS.Key = string(keyPair.Key)
 		}
 
 		updateRoute(routeCopy)
