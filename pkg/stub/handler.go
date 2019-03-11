@@ -83,10 +83,16 @@ func (h *Handler) handleRoute(route *v1.Route) error {
 		h.notify(message)
 
 		// Retreive cert from provider
-		keyPair := h.getCert(route.Spec.Host)
+		keyPair, errorMessage := h.getCert(route.Spec.Host)
+
 		var routeCopy *v1.Route
 		routeCopy = route.DeepCopy()
-		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "no"
+		if errorMessage != "" {
+			routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "failed"
+			routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.StatusReason] = errorMessage
+		} else {
+			routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "no"
+		}
 		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Expiry] = keyPair.Expiry.Format(timeFormat)
 
 		config := routeCopy.Spec.TLS
@@ -131,7 +137,11 @@ func (h *Handler) handleService(service *corev1.Service) error {
 		host := service.ObjectMeta.Name + "." + service.ObjectMeta.Namespace + ".svc.cluster.local"
 
 		// Retreive cert from provider
-		keyPair := h.getCert(host)
+		keyPair, errorMessage := h.getCert(host)
+
+		if errorMessage != "" {
+			logrus.Errorf(errorMessage)
+		}
 
 		var svcCopy *corev1.Service
 		svcCopy = service.DeepCopy()
@@ -198,7 +208,7 @@ func (h *Handler) notify(message string) {
 	}
 }
 
-func (h *Handler) getCert(host string) certs.KeyPair {
+func (h *Handler) getCert(host string) (certs.KeyPair, string) {
 	oneYear, timeErr := time.ParseDuration("8760h")
 	if timeErr != nil {
 		logrus.Errorf("Failed to parse time duratio during getCert: " + timeErr.Error())
@@ -211,8 +221,9 @@ func (h *Handler) getCert(host string) certs.KeyPair {
 		oneYear, false, 2048, "", h.config.Provider.Ssl)
 	if err != nil {
 		logrus.Errorf("Failed to provision key pair: " + err.Error())
+		return keyPair, err.Error()
 	}
-	return keyPair
+	return keyPair, ""
 }
 
 // update route def

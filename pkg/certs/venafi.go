@@ -77,7 +77,7 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 
 	c, err := vcert.NewClient(tppConfig)
 	if err != nil {
-		t.Fatalf("could not connect to endpoint: %s", err)
+		return KeyPair{}, NewCertError("could not connect to endpoint: " + err.Error())
 	}
 
 	enrollReq := &certificate.Request{
@@ -98,12 +98,12 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 
 	err = c.GenerateRequest(nil, enrollReq)
 	if err != nil {
-		t.Fatalf("could not generate certificate request: %s", err)
+		return KeyPair{}, NewCertError("could not generate certificate request: " + err.Error())
 	}
 
 	requestID, err := c.RequestCertificate(enrollReq, "")
 	if err != nil {
-		t.Fatalf("could not submit certificate request: %s", err)
+		return KeyPair{}, NewCertError("could not submit certificate request: " + err.Error())
 	}
 	t.Printf("Successfully submitted certificate request. Will pickup certificate by ID %s", requestID)
 
@@ -113,7 +113,7 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 	}
 	pcc, err := c.RetrieveCertificate(pickupReq)
 	if err != nil {
-		t.Fatalf("could not retrieve certificate using requestId %s: %s", requestID, err)
+		return KeyPair{}, NewCertError("could not retrieve certificate using requestId " + err.Error())
 	}
 
 	pcc.AddPrivateKey(enrollReq.PrivateKey, []byte(enrollReq.KeyPassword))
