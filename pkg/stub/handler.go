@@ -91,7 +91,7 @@ func (h *Handler) handleRoute(route *v1.Route) error {
 			routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "failed"
 			routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.StatusReason] = err.Error()
 		} else {
-			routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "no"
+			routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "secured"
 		}
 		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Expiry] = keyPair.Expiry.Format(timeFormat)
 
