@@ -105,7 +105,6 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 	if err != nil {
 		return KeyPair{}, NewCertError("could not submit certificate request: " + err.Error())
 	}
-	t.Printf("Successfully submitted certificate request. Will pickup certificate by ID %s", requestID)
 
 	pickupReq := &certificate.Request{
 		PickupID: requestID,
@@ -118,7 +117,6 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 
 	pcc.AddPrivateKey(enrollReq.PrivateKey, []byte(enrollReq.KeyPassword))
 
-	t.Printf("Successfully picked up certificate for %s", host)
 	pp(pcc)
 
 	var cert = []byte(pcc.Certificate)

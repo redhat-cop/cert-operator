@@ -109,7 +109,7 @@ func (h *Handler) handleRoute(route *v1.Route) error {
 			routeCopy.Spec.TLS.Key = string(keyPair.Key)
 		}
 
-		err := handleRoute(routeCopy)
+		err = apply(routeCopy)
 
 		if err != nil {
 			logrus.Errorf("Error handling route: %s", err.Error())
@@ -169,13 +169,13 @@ func (h *Handler) handleService(service *corev1.Service) error {
 			Data: dm,
 		}
 
-		err := handleSecret(certSec)
+		err = apply(certSec)
 
 		if err != nil {
 			logrus.Errorf("Error handling secret: %s", err.Error())
 		}
 
-		err = handleService(svcCopy)
+		err = apply(svcCopy)
 
 		if err != nil {
 			logrus.Errorf("Error handling service: %s", err.Error())
@@ -220,25 +220,14 @@ func (h *Handler) getCert(host string) (certs.KeyPair, error) {
 	return keyPair, nil
 }
 
-// Apply a resource
-func handleSecret(secret sdk.Object) error {
-
-    err := sdk.Create(secret)
-    if err != nil {
-    	// type opaque is immutable. we must delete and create.
-    	sdk.Delete(secret)
-    	err = sdk.Create(secret)
-    }
-    return err
-}
-
-func handleService(service *corev1.Service) error {
-	err := sdk.Update(service)
-	return err;
-}
-
-// Apply a resource
-func handleRoute(route *v1.Route) error {
-	err := sdk.Update(route)
-	return err
+func apply(object sdk.Object) error {
+	err := sdk.Create(object)
+	if(err != nil) {
+		err = sdk.Update(object)
+		if err != nil {
+			return err
+		}
+		return nil;
+	}
+	return nil
 }
