@@ -175,11 +175,19 @@ func (h *Handler) handleService(service *corev1.Service) error {
 			logrus.Errorf("Error handling secret: %s", err.Error())
 		}
 
+		logrus.Infof("Provisioned new secret %s/%s containing certificate",
+			certSec.ObjectMeta.Namespace,
+			certSec.ObjectMeta.Name)
+
 		err = apply(svcCopy)
 
 		if err != nil {
 			logrus.Errorf("Error handling service: %s", err.Error())
 		}
+
+		logrus.Infof("Updated service %v/%v with new certificate",
+			service.ObjectMeta.Namespace,
+			service.ObjectMeta.Name)
 	}		
 	return nil
 }
