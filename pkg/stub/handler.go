@@ -86,7 +86,7 @@ func (h *Handler) handleRoute(route *v1.Route) error {
 		keyPair := h.getCert(route.Spec.Host)
 		var routeCopy *v1.Route
 		routeCopy = route.DeepCopy()
-		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "no"
+		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "secured"
 		routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Expiry] = keyPair.Expiry.Format(timeFormat)
 
 		config := routeCopy.Spec.TLS
@@ -103,7 +103,11 @@ func (h *Handler) handleRoute(route *v1.Route) error {
 			routeCopy.Spec.TLS.Key = string(keyPair.Key)
 		}
 
-		updateRoute(routeCopy)
+		err := handleRoute(routeCopy)
+
+		if err != nil {
+			logrus.Errorf("Error handling route: %s", err.Error())
+		}
 
 		logrus.Infof("Updated route %v/%v with new certificate",
 			route.ObjectMeta.Namespace,
@@ -135,6 +139,8 @@ func (h *Handler) handleService(service *corev1.Service) error {
 
 		var svcCopy *corev1.Service
 		svcCopy = service.DeepCopy()
+		svcCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "secured"
+		svcCopy.ObjectMeta.Annotations[h.config.General.Annotations.Expiry] = keyPair.Expiry.Format(timeFormat)
 
 		dm := make(map[string][]byte)
 		dm["app.crt"] = keyPair.Cert
@@ -153,30 +159,18 @@ func (h *Handler) handleService(service *corev1.Service) error {
 			Data: dm,
 		}
 
-		err := sdk.Create(certSec)
+		err := handleSecret(certSec)
+
 		if err != nil {
-			logrus.Errorf("Failed to create secret: " + err.Error())
-			return err
+			logrus.Errorf("Error handling secret: %s", err.Error())
 		}
 
-		logrus.Infof("Provisioned new secret %s/%s containing certificate",
-			certSec.ObjectMeta.Namespace,
-			certSec.ObjectMeta.Name)
+		err = handleService(svcCopy)
 
-		// Update service annotations
-		svcCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "no"
-		svcCopy.ObjectMeta.Annotations[h.config.General.Annotations.Expiry] = keyPair.Expiry.Format(timeFormat)
-
-		err = sdk.Update(svcCopy)
 		if err != nil {
-			logrus.Errorf("Failed to update service: " + err.Error())
-			return err
+			logrus.Errorf("Error handling service: %s", err.Error())
 		}
-
-		logrus.Infof("Updated service %v/%v with new certificate",
-			service.ObjectMeta.Namespace,
-			service.ObjectMeta.Name)
-	}
+	}		
 	return nil
 }
 
@@ -215,10 +209,25 @@ func (h *Handler) getCert(host string) certs.KeyPair {
 	return keyPair
 }
 
-// update route def
-func updateRoute(route *v1.Route) error {
+// Apply a resource
+func handleSecret(secret sdk.Object) error {
 
+    err := sdk.Create(secret)
+    if err != nil {
+    	// type opaque is immutable. we must delete and create.
+    	sdk.Delete(secret)
+    	err = sdk.Create(secret)
+    }
+    return err
+}
+
+func handleService(service *corev1.Service) error {
+	err := sdk.Update(service)
+	return err;
+}
+
+// Apply a resource
+func handleRoute(route *v1.Route) error {
 	err := sdk.Update(route)
-
 	return err
 }
