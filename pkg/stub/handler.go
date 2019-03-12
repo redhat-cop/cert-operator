@@ -83,13 +83,13 @@ func (h *Handler) handleRoute(route *v1.Route) error {
 		h.notify(message)
 
 		// Retreive cert from provider
-		keyPair, errorMessage := h.getCert(route.Spec.Host)
+		keyPair, err := h.getCert(route.Spec.Host)
 
 		var routeCopy *v1.Route
 		routeCopy = route.DeepCopy()
-		if errorMessage != "" {
+		if err != nil {
 			routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "failed"
-			routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.StatusReason] = errorMessage
+			routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.StatusReason] = err.Error()
 		} else {
 			routeCopy.ObjectMeta.Annotations[h.config.General.Annotations.Status] = "no"
 		}
@@ -137,10 +137,10 @@ func (h *Handler) handleService(service *corev1.Service) error {
 		host := service.ObjectMeta.Name + "." + service.ObjectMeta.Namespace + ".svc.cluster.local"
 
 		// Retreive cert from provider
-		keyPair, errorMessage := h.getCert(host)
+		keyPair, err := h.getCert(host)
 
-		if errorMessage != "" {
-			logrus.Errorf(errorMessage)
+		if err != nil {
+			logrus.Errorf(err.Error())
 		}
 
 		var svcCopy *corev1.Service
@@ -163,7 +163,7 @@ func (h *Handler) handleService(service *corev1.Service) error {
 			Data: dm,
 		}
 
-		err := sdk.Create(certSec)
+		err = sdk.Create(certSec)
 		if err != nil {
 			logrus.Errorf("Failed to create secret: " + err.Error())
 			return err
@@ -208,7 +208,7 @@ func (h *Handler) notify(message string) {
 	}
 }
 
-func (h *Handler) getCert(host string) (certs.KeyPair, string) {
+func (h *Handler) getCert(host string) (certs.KeyPair, error) {
 	oneYear, timeErr := time.ParseDuration("8760h")
 	if timeErr != nil {
 		logrus.Errorf("Failed to parse time duratio during getCert: " + timeErr.Error())
@@ -221,9 +221,9 @@ func (h *Handler) getCert(host string) (certs.KeyPair, string) {
 		oneYear, false, 2048, "", h.config.Provider.Ssl)
 	if err != nil {
 		logrus.Errorf("Failed to provision key pair: " + err.Error())
-		return keyPair, err.Error()
+		return keyPair, err
 	}
-	return keyPair, ""
+	return keyPair, nil
 }
 
 // update route def
