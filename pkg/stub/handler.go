@@ -134,7 +134,7 @@ func (h *Handler) handleService(service *corev1.Service) error {
 
 		h.notify(message)
 
-		host := service.ObjectMeta.Name + "." + service.ObjectMeta.Namespace + ".svc.cluster.local"
+		host := service.ObjectMeta.Name + "." + service.ObjectMeta.Namespace + ".svc"
 
 		// Retreive cert from provider
 		keyPair, err := h.getCert(host)
