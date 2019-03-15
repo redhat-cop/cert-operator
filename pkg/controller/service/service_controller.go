@@ -128,7 +128,7 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 	if instance.ObjectMeta.Annotations[r.config.General.Annotations.Status] == r.config.General.Annotations.NeedCertValue {
 		reqLogger.Info("Reconciling Service")
 
-		host := instance.ObjectMeta.Name + "." + instance.ObjectMeta.Namespace + ".svc.cluster.local"
+		host := instance.ObjectMeta.Name + "." + instance.ObjectMeta.Namespace + ".svc"
 
 		var svcCopy *corev1.Service
 		svcCopy = instance.DeepCopy()
