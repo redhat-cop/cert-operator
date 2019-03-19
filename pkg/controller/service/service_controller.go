@@ -106,9 +106,9 @@ type ReconcileService struct {
 func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 
-	// Fetch the Route instance
-	instance := &corev1.Service{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
+	// Fetch the Route svc
+	svc := &corev1.Service{}
+	err := r.client.Get(context.TODO(), request.NamespacedName, svc)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -121,25 +121,25 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 
 	// Look for annoation that requires action, otherwise skip it
-	if instance.ObjectMeta.Annotations == nil || instance.ObjectMeta.Annotations[r.config.General.Annotations.Status] == "" {
+	if svc.ObjectMeta.Annotations == nil || svc.ObjectMeta.Annotations[r.config.General.Annotations.Status] == "" {
 		return reconcile.Result{}, nil
 	}
 
-	if instance.ObjectMeta.Annotations[r.config.General.Annotations.Status] == r.config.General.Annotations.NeedCertValue {
+	if svc.ObjectMeta.Annotations[r.config.General.Annotations.Status] == r.config.General.Annotations.NeedCertValue {
 		reqLogger.Info("Reconciling Service")
 
-		host := instance.ObjectMeta.Name + "." + instance.ObjectMeta.Namespace + ".svc"
+		host := svc.ObjectMeta.Name + "." + svc.ObjectMeta.Namespace + ".svc"
 
-		var svcCopy *corev1.Service
-		svcCopy = instance.DeepCopy()
+		var svc *corev1.Service
+		svc = svc.DeepCopy()
 
 		keyPair, err := helpers.GetCert(host, r.provider, r.config.Provider.Ssl)
 		if err != nil {
-			svcCopy.ObjectMeta.Annotations[r.config.General.Annotations.Status] = "failed"
-			svcCopy.ObjectMeta.Annotations[r.config.General.Annotations.StatusReason] = err.Error()
+			svc.ObjectMeta.Annotations[r.config.General.Annotations.Status] = "failed"
+			svc.ObjectMeta.Annotations[r.config.General.Annotations.StatusReason] = err.Error()
 		} else {
-			svcCopy.ObjectMeta.Annotations[r.config.General.Annotations.Status] = "secured"
-			svcCopy.ObjectMeta.Annotations[r.config.General.Annotations.Expiry] = keyPair.Expiry.Format(helpers.TimeFormat)
+			svc.ObjectMeta.Annotations[r.config.General.Annotations.Status] = "secured"
+			svc.ObjectMeta.Annotations[r.config.General.Annotations.Expiry] = keyPair.Expiry.Format(helpers.TimeFormat)
 		}
 
 		dm := make(map[string][]byte)
@@ -153,8 +153,8 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 				APIVersion: "v1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      svcCopy.ObjectMeta.Name + "-certificate",
-				Namespace: svcCopy.ObjectMeta.Namespace,
+				Name:      svc.ObjectMeta.Name + "-certificate",
+				Namespace: svc.ObjectMeta.Namespace,
 			},
 			Data: dm,
 		}
@@ -165,7 +165,7 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 			return reconcile.Result{}, err
 		}
 
-		err = helpers.Apply(r.client, svcCopy)
+		err = helpers.Apply(r.client, svc)
 		if err != nil {
 			reqLogger.Error(err, "Failed to apply service")
 			return reconcile.Result{}, err

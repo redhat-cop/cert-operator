@@ -114,9 +114,9 @@ type ReconcileRoute struct {
 func (r *ReconcileRoute) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 
-	// Fetch the Route instance
-	instance := &routev1.Route{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
+	// Fetch the Route route
+	route := &routev1.Route{}
+	err := r.client.Get(context.TODO(), request.NamespacedName, route)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -128,43 +128,40 @@ func (r *ReconcileRoute) Reconcile(request reconcile.Request) (reconcile.Result,
 		return reconcile.Result{}, err
 	}
 
-	if instance.ObjectMeta.Annotations == nil || instance.ObjectMeta.Annotations[r.config.General.Annotations.Status] == "" {
+	if route.ObjectMeta.Annotations == nil || route.ObjectMeta.Annotations[r.config.General.Annotations.Status] == "" {
 		return reconcile.Result{}, nil
 	}
 
-	if instance.ObjectMeta.Annotations[r.config.General.Annotations.Status] == r.config.General.Annotations.NeedCertValue {
+	if route.ObjectMeta.Annotations[r.config.General.Annotations.Status] == r.config.General.Annotations.NeedCertValue {
 		reqLogger.Info("Reconciling Route")
 
-		var routeCopy *routev1.Route
-		routeCopy = instance.DeepCopy()
-
 		// Retreive cert from provider
-		keyPair, err := helpers.GetCert(instance.Spec.Host, r.provider, r.config.Provider.Ssl)
+		keyPair, err := helpers.GetCert(route.Spec.Host, r.provider, r.config.Provider.Ssl)
 		if err != nil {
-			routeCopy.ObjectMeta.Annotations[r.config.General.Annotations.Status] = "failed"
-			routeCopy.ObjectMeta.Annotations[r.config.General.Annotations.StatusReason] = err.Error()
+			route.ObjectMeta.Annotations[r.config.General.Annotations.Status] = "failed"
+			route.ObjectMeta.Annotations[r.config.General.Annotations.StatusReason] = err.Error()
 		} else {
-			routeCopy.ObjectMeta.Annotations[r.config.General.Annotations.Status] = "secured"
-			routeCopy.ObjectMeta.Annotations[r.config.General.Annotations.Expiry] = keyPair.Expiry.Format(helpers.TimeFormat)
+			route.ObjectMeta.Annotations[r.config.General.Annotations.Status] = "secured"
+			route.ObjectMeta.Annotations[r.config.General.Annotations.Expiry] = keyPair.Expiry.Format(helpers.TimeFormat)
 		}
 
 		//var termination string
 
 		var termination v1.TLSTerminationType
-		config := instance.Spec.TLS
+		config := route.Spec.TLS
 		if config == nil {
 			termination = v1.TLSTerminationEdge
 		} else {
-			termination = instance.Spec.TLS.Termination
+			termination = route.Spec.TLS.Termination
 		}
 
-		routeCopy.Spec.TLS = &v1.TLSConfig{
+		route.Spec.TLS = &v1.TLSConfig{
 			Termination: termination,
 			Certificate: string(keyPair.Cert),
 			Key:         string(keyPair.Key),
 		}
 
-		err = helpers.Apply(r.client, routeCopy)
+		err = helpers.Apply(r.client, route)
 		if err != nil {
 			return reconcile.Result{}, err
 		}

@@ -1,0 +1,9 @@
+tests:
+  - file: test/manifests/route-no-tls.yml
+    expectedResults:
+      - jsonpath: .metadata.annotations.openshift\.io\/cert-ctl-status
+        assertValue: secured
+  - file: test/manifests/route-tls.yml
+    expectedResults:
+      - jsonpath: .metadata.annotations.openshift\.io\/cert-ctl-status
+        assertValue: secured

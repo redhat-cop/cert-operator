@@ -1,0 +1,30 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    openshift.io/cert-ctl-expires: Feb 26 15:21:51 2020
+    openshift.io/cert-ctl-status: "new"
+    openshift.io/host.generated: "true"
+  creationTimestamp: null
+  labels:
+    app: dotnet-example
+  name: dotnet-tls
+spec:
+  host:
+  tls:
+    termination: reencrypt
+    insecureEdgeTerminationPolicy: Redirect
+  to:
+    kind: Service
+    name: dotnet-example
+    weight: 100
+  wildcardPolicy: None
+status:
+  ingress:
+  - conditions:
+    - lastTransitionTime: 2019-02-19T23:59:16Z
+      status: "True"
+      type: Admitted
+    host: dotnet-example-esauer-sbx.apps.d2.casl.rht-labs.com
+    routerName: router
+    wildcardPolicy: None

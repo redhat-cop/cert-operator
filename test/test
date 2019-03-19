@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+import os
+import signal
+import subprocess
+import sys
+import time
+import yaml
+
+# Run through some local tests of cert-operator
+FNULL = open(os.devnull, 'w')
+
+
+def startOperator():
+    process = subprocess.Popen(
+        ['operator-sdk', 'up', 'local'], stdout=FNULL, stderr=subprocess.STDOUT)
+    time.sleep(10)
+    return process.pid
+
+
+def stopOperator(pid):
+    os.killpg(os.getpgid(pid), signal.SIGTERM)
+
+
+def testRoutes():
+    print("Testing Routes")
+    tc = yaml.load(open('test/tests.yml', 'r'))
+    for test in tc['tests']:
+        print(test['file'])
+        subprocess.run(['oc', 'apply', '-f', test['file']],
+                       stdout=FNULL, stderr=subprocess.STDOUT)
+        i = 0
+        #   p = 0
+        while i < 4:
+            i += 1
+            time.sleep(1)
+            result = subprocess.run(['oc', 'get', '-f', test['file'], '-o',
+                                     'jsonpath=\'{'+test['expectedResults'][0]['jsonpath']+'}\''])
+            #   if ["$(oc get -f ${route} -o jsonpath='{.metadata.annotations.openshift\.io\/cert-ctl-status}')" == "secured"]
+    #   then
+    #   p = 1
+    #   break
+    #   fi
+    #   done
+    #   if [$p - eq 1]
+    #   then
+    #   echo "${route} Passed."
+    #   else
+    #   echo "${route} Failed."
+    #   fi
+    # done
+
+
+if __name__ == "__main__":
+    # Verify that we are logged into a cluster
+    try:
+        login = subprocess.run(
+            ['oc', 'whoami'], stdout=FNULL, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError:
+        print('''Looks like you are not logged in. Please run \`oc login\` to
+            continue.''')
+        sys.exit(1)
+
+    print("Starting Operator")
+    pid = startOperator()
+
+    testRoutes()
+
+    print("Tests Complete. Stopping Operator")
+    stopOperator(pid)
