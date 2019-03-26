@@ -8,7 +8,6 @@ import (
 
 	routev1 "github.com/openshift/api/route/v1"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -57,6 +56,10 @@ func routeBasicTest(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 			TLS: &routev1.TLSConfig{
 				Termination: routev1.TLSTerminationEdge,
 			},
+			To: routev1.RouteTargetReference{
+				Kind: "Service",
+				Name: "myservice",
+			},
 		},
 	}
 
@@ -78,17 +81,9 @@ func SetupCluster(t *testing.T) {
 		t.Fatalf("failed to initialize cluster resources: %v", err)
 	}
 	t.Log("Initialized cluster resources")
-	namespace, err := ctx.GetNamespace()
-	if err != nil {
-		t.Fatal(err)
-	}
+
 	// get global framework variables
 	f := framework.Global
-	// wait for memcached-operator to be ready
-	err = e2eutil.WaitForDeployment(t, f.KubeClient, namespace, "cert-operator", 1, retryInterval, timeout)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	if err = routeBasicTest(t, f, ctx); err != nil {
 		t.Fatal(err)

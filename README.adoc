@@ -27,6 +27,16 @@ export OPERATOR_NAME=cert-operator
 operator-sdk up local
 ----
 
+== Running Test Cases
+
+[source,bash]
+----
+oc login ...
+oc new-project cert-operator-test
+export OPERATOR_NAME=cert-operator
+operator-sdk test local ./test/e2e/ --namespace=cert-operator-test --up-local
+----
+
 == Deployment to OpenShift
 
 [source,bash]
