@@ -78,9 +78,7 @@ func routeBasicTest(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 		return err
 	}
 
-	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: "route-tls", Namespace: namespace}, exampleRoute)
-
-	assert.Assert(t, waitForRouteAnnotation(t, f, namespace, "route-tls", "openshift.io/cert-ctl-status", "new", retryInterval, timeout))
+	assert.Assert(t, waitForRouteAnnotation(t, f, namespace, "route-tls", "openshift.io/cert-ctl-status", "secured", retryInterval, timeout))
 
 	return nil
 }
