@@ -130,9 +130,6 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 
 		host := svc.ObjectMeta.Name + "." + svc.ObjectMeta.Namespace + ".svc"
 
-		var svc *corev1.Service
-		svc = svc.DeepCopy()
-
 		keyPair, err := helpers.GetCert(host, r.provider, r.config.Provider.Ssl)
 		if err != nil {
 			svc.ObjectMeta.Annotations[r.config.General.Annotations.Status] = "failed"

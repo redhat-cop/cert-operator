@@ -11,9 +11,11 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -78,7 +80,52 @@ func routeBasicTest(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 		return err
 	}
 
-	assert.Assert(t, waitForRouteAnnotation(t, f, namespace, "route-tls", "openshift.io/cert-ctl-status", "secured", retryInterval, timeout))
+	assert.Assert(t, waitForAnnotation(t, f, namespace, "route-tls", "openshift.io/cert-ctl-status", "secured", retryInterval, timeout))
+
+	return nil
+}
+
+func serviceBasicTest(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
+	namespace, err := ctx.GetNamespace()
+	if err != nil {
+		return fmt.Errorf("could not get namespace: %v", err)
+	}
+
+	exampleService := &corev1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "example-service",
+			Namespace: namespace,
+			Annotations: map[string]string{
+				"openshift.io/cert-ctl-status": "new",
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				corev1.ServicePort{
+					Name:       "web",
+					Port:       8080,
+					Protocol:   "TCP",
+					TargetPort: intstr.FromInt(8080),
+				},
+			},
+			Selector: map[string]string{
+				"name": "example-service",
+			},
+			Type: "ClusterIP",
+		},
+	}
+
+	// use TestCtx's create helper to create the object and add a cleanup function for the new object
+	err = f.Client.Create(goctx.TODO(), exampleService, &framework.CleanupOptions{TestContext: ctx, Timeout: cleanupTimeout, RetryInterval: cleanupRetryInterval})
+	if err != nil {
+		return err
+	}
+
+	assert.Assert(t, waitForAnnotation(t, f, namespace, "route-tls", "openshift.io/cert-ctl-status", "secured", retryInterval, timeout))
 
 	return nil
 }
@@ -110,9 +157,12 @@ func SetupCluster(t *testing.T) {
 	if err = routeBasicTest(t, f, ctx); err != nil {
 		t.Fatal(err)
 	}
+	if err = serviceBasicTest(t, f, ctx); err != nil {
+		t.Fatal(err)
+	}
 }
 
-func waitForRouteAnnotation(t *testing.T, f *framework.Framework, namespace string, name string, annotation string, expectedValue string, retryInterval time.Duration, timeout time.Duration) error {
+func waitForAnnotation(t *testing.T, f *framework.Framework, namespace string, name string, annotation string, expectedValue string, retryInterval time.Duration, timeout time.Duration) error {
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		route := &routev1.Route{}
 		err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: "route-tls", Namespace: namespace}, route)
