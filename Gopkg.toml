@@ -10,7 +10,8 @@ required = [
   "k8s.io/gengo/args",
   "sigs.k8s.io/controller-tools/pkg/crd/generator",
   "github.com/openshift/api/route/v1",
-  "github.com/micro/go-config"
+  "github.com/micro/go-config",
+  "gotest.tools/assert"
 ]
 
 [[override]]
