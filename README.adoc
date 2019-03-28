@@ -5,7 +5,7 @@ toc::[]
 
 == Prerequisites
 
-* link:https://github.com/operator-framework/operator-sdk/tree/v0.0.6[Operator SDK v0.0.6]
+* link:https://github.com/operator-framework/operator-sdk/tree/v0.5.0[Operator SDK v0.5.0]
 * link:https://golang.github.io/dep/docs/installation.html[Dep]
 
 == Installation
@@ -22,9 +22,18 @@ dep ensure
 ----
 oc login ...
 oc new-project cert-operator
-oc process -f deploy/rbac.yaml -p NAMESPACE=cert-operator | oc apply -f-
 export OPERATOR_NAME=cert-operator
 operator-sdk up local
+----
+
+== Running Test Cases
+
+[source,bash]
+----
+oc login ...
+oc new-project cert-operator-test
+export OPERATOR_NAME=cert-operator
+operator-sdk test local ./test/e2e/ --namespace=cert-operator-test --up-local
 ----
 
 == Deployment to OpenShift
@@ -32,7 +41,9 @@ operator-sdk up local
 [source,bash]
 ----
 oc process -f build/build.yml | oc apply -f-
-oc process -f deploy/rbac.yaml -p NAMESPACE=cert-operator | oc apply -f-
+oc apply -f deploy/service_account.yaml
+oc apply -f deploy/role.yaml
+oc apply -f deploy/role_binding.yaml
 oc apply -f deploy/deployment.yaml
 ----
 
@@ -115,8 +126,8 @@ In the logs for your operator, you'll see something like:
 
 [source,bash]
 ----
-INFO[0007] Found a route waiting for a cert : sbx-esauer/dotnet-example
-INFO[0007] Update route sbx-esauer/dotnet-example with new certificate
+{"level":"info","ts":1553713448.1514533,"logger":"controller_route","msg":"Reconciling Route","Request.Namespace":"cert-operator","Request.Name":"dotnet-example"}
+{"level":"info","ts":1553713448.2551682,"logger":"controller_route","msg":"Updated route with new certificate","Request.Namespace":"cert-operator","Request.Name":"dotnet-example"}
 ----
 
 Then, if you take a look at your `dotnet-example` route, you'll see that it has been update with a TLS Edge policy.
@@ -128,7 +139,7 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   annotations:
-    openshift.io/managed.cert: "no"
+    openshift.io/managed.cert: "secured"
 ...
   name: dotnet-example
 spec:
@@ -159,9 +170,8 @@ In the logs for your operator, you'll see something like:
 
 [source,bash]
 ----
-INFO[0005] Found a service waiting for a cert : sbx-esauer/dotnet-example
-INFO[0006] Provisioned new secret sbx-esauer/dotnet-example-certificate containing certificate
-INFO[0006] Updated service sbx-esauer/dotnet-example with new certificate
+{"level":"info","ts":1553715427.6889565,"logger":"controller_service","msg":"Reconciling Service","Request.Namespace":"cert-operator","Request.Name":"dotnet-example"}
+{"level":"info","ts":1553715427.8858836,"logger":"controller_service","msg":"Updated service with new certificate","Request.Namespace":"cert-operator","Request.Name":"dotnet-example"}
 ----
 
 Look to see that a new secret has been created in your project.
@@ -177,5 +187,5 @@ You'll also notice that the annotation on the service has changed.
 [source,bash]
 ----
 $ oc get service dotnet-example -o jsonpath='{.metadata.annotations.openshift\.io/cert-ctl-status}'
-no
+secured
 ----

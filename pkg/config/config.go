@@ -7,7 +7,7 @@ notifiers:
   integration_url: https://hooks.slack.com/services/service_id/auth-token
 */
 
-package stub
+package config
 
 import (
 	"encoding/json"

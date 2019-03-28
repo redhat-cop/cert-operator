@@ -1,1 +1,1 @@
-cmd/cert-operator/main.go
+cmd/manager/main.go

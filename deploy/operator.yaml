@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cert-operator
+  labels:
+    app: cert-operator
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cert-operator
+      deployment: cert-operator
+  template:
+    metadata:
+      labels:
+        app: cert-operator
+        deployment: cert-operator
+    spec:
+      containers:
+        - name: cert-operator
+          image: cert-operator:latest
+          ports:
+          - containerPort: 60000
+            name: metrics
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: OPERATOR_NAME
+              value: "cert-operator"

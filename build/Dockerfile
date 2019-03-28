@@ -1,11 +1,15 @@
-FROM alpine:3.6
+FROM alpine:3.8
 
-RUN  apk update && \
-     apk add libc6-compat && \
-     apk add ca-certificates
+ENV OPERATOR=/usr/local/bin/cert-operator \
+    USER_UID=1001 \
+    USER_NAME=cert-operator
 
-RUN adduser -D cert-operator
+# install operator binary
+COPY build/_output/bin/cert-operator ${OPERATOR}
 
-USER cert-operator
+COPY build/bin /usr/local/bin
+RUN  /usr/local/bin/user_setup
 
-ADD tmp/_output/bin/cert-operator /usr/local/bin/cert-operator
+ENTRYPOINT ["/usr/local/bin/entrypoint"]
+
+USER ${USER_UID}
