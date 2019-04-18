@@ -28,9 +28,11 @@ func CovertToPKCS12(privateKey []byte, certificate []byte, caCerts [][]byte, pas
 	}
 
 	// convert all ca certs and populate new entry
-	caX509Certs := make([]*x509.Certificate, 0, len(caCerts))
+	caX509Certs := make([]*x509.Certificate, len(caCerts))
 	for i, caCert := range caCerts {
-		caX509Certs[i], err = parseCert(caCert)
+		// TODO would like to set the array directly if possible
+		x509CaCert, err := parseCert(caCert)
+		caX509Certs[i] = x509CaCert
 
 		if err != nil {
 			return nil, err
