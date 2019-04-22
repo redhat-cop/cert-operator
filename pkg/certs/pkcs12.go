@@ -11,8 +11,8 @@ import (
 	"software.sslmate.com/src/go-pkcs12"
 )
 
-// CovertToPKCS12 Takes in a crypto private key, x509 certificate, x509 ca chain, password to open the P12 file and returns it as a byte array
-func CovertToPKCS12(privateKey []byte, certificate []byte, caCerts [][]byte, password string) ([]byte, error) {
+// ConvertToPKCS12 Takes in a crypto private key, x509 certificate, x509 ca chain, password to open the P12 file and returns it as a byte array
+func ConvertToPKCS12(privateKey []byte, certificate []byte, caCerts [][]byte, password string) ([]byte, error) {
 	// convert private key to crypto private key
 	privateCryptoKey, err := parsePrivateKey(privateKey)
 
