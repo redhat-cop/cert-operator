@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gotest.tools/assert"
+	"gotest.tools/assert/cmp"
 
 	routev1 "github.com/openshift/api/route/v1"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
@@ -14,6 +15,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -80,7 +82,7 @@ func routeBasicTest(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 		return err
 	}
 
-	assert.Assert(t, waitForAnnotation(t, f, namespace, "route-tls", "openshift.io/cert-ctl-status", "secured", retryInterval, timeout))
+	assert.Assert(t, waitForAnnotation(t, f, exampleRoute, "openshift.io/cert-ctl-status", "secured"))
 
 	return nil
 }
@@ -125,7 +127,26 @@ func serviceBasicTest(t *testing.T, f *framework.Framework, ctx *framework.TestC
 		return err
 	}
 
-	assert.Assert(t, waitForAnnotation(t, f, namespace, "route-tls", "openshift.io/cert-ctl-status", "secured", retryInterval, timeout))
+	// Get the service to confirm it was created
+	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: exampleService.Name, Namespace: namespace}, exampleService)
+	if err != nil {
+		return err
+	}
+
+	// Check the the annotation was set properly
+	assert.Assert(t, waitForAnnotation(t, f, exampleService, "openshift.io/cert-ctl-status", "secured"))
+
+	// Verify that a secret was created
+	exampleSecret := &corev1.Secret{}
+	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: exampleService.Name + "-certificate", Namespace: namespace}, exampleSecret)
+	if err != nil {
+		return err
+	}
+
+	// Check that the secret is of the expected type and has values set
+	assert.Equal(t, exampleSecret.Type, corev1.SecretTypeTLS)
+	assert.Assert(t, cmp.Contains(exampleSecret.Data, "tls.crt"))
+	assert.Assert(t, cmp.Contains(exampleSecret.Data, "tls.key"))
 
 	return nil
 }
@@ -162,27 +183,39 @@ func SetupCluster(t *testing.T) {
 	}
 }
 
-func waitForAnnotation(t *testing.T, f *framework.Framework, namespace string, name string, annotation string, expectedValue string, retryInterval time.Duration, timeout time.Duration) error {
+func waitForAnnotation(t *testing.T, f *framework.Framework, obj IdentifiableKind, annotation string, expectedValue string) error {
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		route := &routev1.Route{}
-		err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: "route-tls", Namespace: namespace}, route)
+
+		var instance IdentifiableKind
+		switch obj.(type) {
+		case *routev1.Route:
+			instance = &routev1.Route{}
+		case *corev1.Service:
+			instance = &corev1.Service{}
+		case *corev1.Secret:
+			instance = &corev1.Secret{}
+		default:
+			t.Logf("Unsupported kind: %s", obj.GetObjectKind())
+		}
+
+		err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: obj.GetName(), Namespace: obj.GetNamespace()}, instance.(runtime.Object))
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				t.Logf("Waiting for availability of %s deployment\n", name)
+				t.Logf("Waiting for availability of %s deployment\n", obj.GetName())
 				return false, nil
 			}
 			return false, err
 		}
 
-		if route.ObjectMeta.Annotations[annotation] == expectedValue {
+		if instance.GetAnnotations()[annotation] == expectedValue {
 			return true, nil
 		}
-		t.Logf("Waiting for operator to reconcile Route %s (current %s; want %s)\n", name, route.ObjectMeta.Annotations[annotation], expectedValue)
+		t.Logf("Waiting for operator to reconcile Route %s (current %s; want %s)\n", instance.GetName(), instance.GetAnnotations()[annotation], expectedValue)
 		return false, nil
 	})
 	if err != nil {
 		return err
 	}
-	t.Logf("Route reconciled! %s\n", name)
+	t.Logf("Object reconciled! %s\n", obj.GetName())
 	return nil
 }

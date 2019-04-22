@@ -154,7 +154,7 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 				Namespace: svc.ObjectMeta.Namespace,
 			},
 			Data: dm,
-			Type: "kubernetes.io/tls",
+			Type: corev1.SecretTypeTLS,
 		}
 
 		err = helpers.Apply(r.client, certSec)
