@@ -17,7 +17,7 @@ func TestConvertToPKCS12(t *testing.T) {
 	rootCAS := [][]byte{}
 
 	// act
-	pkcs12Byte, err := CovertToPKCS12(privKeyBytes, certBytes, rootCAS, "secret")
+	pkcs12Byte, err := ConvertToPKCS12(privKeyBytes, certBytes, rootCAS, "secret")
 
 	// assert
 	if err != nil {
