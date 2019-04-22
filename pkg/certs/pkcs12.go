@@ -22,7 +22,7 @@ func CovertToPKCS12(privateKey []byte, certificate []byte, caCerts [][]byte, pas
 	}
 
 	// convert certificate to x509
-	publicX509, err := parseCert(certificate)
+	publicX509, err := x509.ParseCertificate(certificate)
 	if err != nil {
 		return nil, err
 	}
@@ -31,20 +31,14 @@ func CovertToPKCS12(privateKey []byte, certificate []byte, caCerts [][]byte, pas
 	caX509Certs := make([]*x509.Certificate, len(caCerts))
 	for i, caCert := range caCerts {
 		// TODO would like to set the array directly if possible
-		x509CaCert, err := parseCert(caCert)
+		x509CaCert, err := x509.ParseCertificate(caCert)
 		caX509Certs[i] = x509CaCert
 
 		if err != nil {
 			return nil, err
 		}
 	}
-
-	return ConvertToPKCS12(privateCryptoKey, publicX509, caX509Certs, password)
-}
-
-// ConvertToPKCS12 Convert crypto private key, x509 certificate, x509 ca certificates, and password to a p12 password protected file
-func ConvertToPKCS12(privateKey crypto.PrivateKey, certificate *x509.Certificate, caCerts []*x509.Certificate, password string) ([]byte, error) {
-	return pkcs12.Encode(rand.Reader, privateKey, certificate, caCerts, password)
+	return pkcs12.Encode(rand.Reader, privateCryptoKey, publicX509, caX509Certs, password)
 }
 
 // Convert the bytes of a private key to a crypto.PrivateKey
@@ -71,11 +65,4 @@ func parsePrivateKey(der []byte) (crypto.PrivateKey, error) {
 
 	// was not able to parse so return appropriate error
 	return nil, errors.New("crypto/tls: failed to parse private key")
-}
-
-// parse a public cert this can include CA certs and return it as a x509.Certificate
-func parseCert(cert []byte) (*x509.Certificate, error) {
-	x509Cert, err := x509.ParseCertificate(cert)
-
-	return x509Cert, err
 }
