@@ -169,7 +169,7 @@ func SetupCluster(t *testing.T) {
 	// get global framework variables
 	f := framework.Global
 
-	// wait for example-memcached to reach 3 replicas
+	// wait for operator to be ready
 	err = e2eutil.WaitForOperatorDeployment(t, f.KubeClient, namespace, "cert-operator", 3, retryInterval, timeout)
 	if err != nil {
 		t.Fatal(err)
@@ -196,6 +196,7 @@ func waitForAnnotation(t *testing.T, f *framework.Framework, obj IdentifiableKin
 			instance = &corev1.Secret{}
 		default:
 			t.Logf("Unsupported kind: %s", obj.GetObjectKind())
+			return false, nil
 		}
 
 		err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: obj.GetName(), Namespace: obj.GetNamespace()}, instance.(runtime.Object))
