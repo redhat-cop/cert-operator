@@ -140,8 +140,8 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 		}
 
 		dm := make(map[string][]byte)
-		dm["app.crt"] = keyPair.Cert
-		dm["app.key"] = keyPair.Key
+		dm["tls.crt"] = keyPair.Cert
+		dm["tls.key"] = keyPair.Key
 
 		// Create a secret
 		certSec := &corev1.Secret{
@@ -154,6 +154,7 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 				Namespace: svc.ObjectMeta.Namespace,
 			},
 			Data: dm,
+			Type: corev1.SecretTypeTLS,
 		}
 
 		err = helpers.Apply(r.client, certSec)
