@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/pem"
 
 	"github.com/redhat-cop/cert-operator/pkg/certs"
 	certconf "github.com/redhat-cop/cert-operator/pkg/config"
@@ -142,6 +143,23 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 		dm := make(map[string][]byte)
 		dm["app.crt"] = keyPair.Cert
 		dm["app.key"] = keyPair.Key
+
+		// see if a pcks12 secret was requested
+
+		if svc.ObjectMeta.Annotations[r.config.General.Annotations.IncludePkcs12] == "true" {
+			password := helpers.String(24)
+			pemCrt, _ := pem.Decode(keyPair.Cert)
+			pemKey, _ := pem.Decode(keyPair.Key)
+			p12cert, err := certs.ConvertToPKCS12(pemKey.Bytes, pemCrt.Bytes, [][]byte{}, password)
+
+			if err != nil {
+				reqLogger.Error(err, "Failed to convert to PKCS12")
+				return reconcile.Result{}, err
+			}
+
+			dm["app.p12"] = p12cert
+			dm["app-secret.txt"] = []byte(password)
+		}
 
 		// Create a secret
 		certSec := &corev1.Secret{
