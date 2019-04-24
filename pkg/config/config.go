@@ -38,7 +38,7 @@ type AnnotationConfig struct {
 	Expiry        string `json:"expiry"`
 	Format        string `json:"format"`
 	NeedCertValue string `json:"need-cert-value"`
-	IncludePkcs12 string `json:"include-pkcs-12c"`
+	IncludePkcs12 string `json:"include-pkcs-12"`
 }
 
 const (

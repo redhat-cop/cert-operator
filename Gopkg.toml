@@ -13,7 +13,8 @@ required = [
   "github.com/micro/go-config",
   "gotest.tools/assert",
   "software.sslmate.com/src/go-pkcs12",
-  "github.com/Venafi/vcert"
+  "github.com/Venafi/vcert",
+  "github.com/stretchr/testify/assert"
 ]
 
 [[override]]
