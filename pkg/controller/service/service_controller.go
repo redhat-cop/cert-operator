@@ -141,8 +141,8 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 		}
 
 		dm := make(map[string][]byte)
-		dm["app.crt"] = keyPair.Cert
-		dm["app.key"] = keyPair.Key
+		dm["tls.crt"] = keyPair.Cert
+		dm["tls.key"] = keyPair.Key
 
 		// see if a pcks12 secret was requested
 
@@ -157,8 +157,8 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 				return reconcile.Result{}, err
 			}
 
-			dm["app.p12"] = p12cert
-			dm["app-secret.txt"] = []byte(password)
+			dm["tls.p12"] = p12cert
+			dm["tls-p12-secret.txt"] = []byte(password)
 		}
 
 		// Create a secret
