@@ -97,10 +97,11 @@ func serviceP12Test(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "example-service",
+			Name:      "example-service-pkcs12",
 			Namespace: namespace,
 			Annotations: map[string]string{
 				"openshift.io/cert-ctl-status": "new",
+				"openshift.io/cert-ctl-format": "PKCS12",
 			},
 		},
 		Spec: corev1.ServiceSpec{
@@ -113,7 +114,7 @@ func serviceP12Test(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 				},
 			},
 			Selector: map[string]string{
-				"name": "example-service",
+				"name": "example-service-pkcs12",
 			},
 			Type: "ClusterIP",
 		},
@@ -142,11 +143,11 @@ func serviceP12Test(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 	}
 
 	// Check that the secret is of the expected type and has values set
-	assert.Equal(t, exampleSecret.Type, corev1.SecretTypeTLS)
-	assert.NotContains(t, exampleSecret.Data, "tls.crt")
-	assert.NotContains(t, exampleSecret.Data, "tls.key")
-	assert.Contains(t, exampleSecret.Data, "tls.p12")
-	assert.Contains(t, exampleSecret.Data, "tls-p12-secret.txt")
+	assert.Equal(t, exampleSecret.Type, corev1.SecretTypeOpaque, "invalid secret type")
+	assert.NotContains(t, exampleSecret.Data, "tls.crt", "should not have contained tls.crt")
+	assert.NotContains(t, exampleSecret.Data, "tls.key", "should not have contained tls.key")
+	assert.Contains(t, exampleSecret.Data, "tls.p12", "should have contained tls.p12")
+	assert.Contains(t, exampleSecret.Data, "tls-p12-secret.txt", "should have contained tls-p12-secret.txt")
 
 	return nil
 }
@@ -208,11 +209,11 @@ func serviceBasicTest(t *testing.T, f *framework.Framework, ctx *framework.TestC
 	}
 
 	// Check that the secret is of the expected type and has values set
-	assert.Equal(t, exampleSecret.Type, corev1.SecretTypeTLS)
-	assert.Contains(t, exampleSecret.Data, "tls.crt")
-	assert.Contains(t, exampleSecret.Data, "tls.key")
-	assert.NotContains(t, exampleSecret.Data, "tls.p12")
-	assert.NotContains(t, exampleSecret.Data, "tls-p12-secret.txt")
+	assert.Equal(t, exampleSecret.Type, corev1.SecretTypeTLS, "invalid secret type")
+	assert.Contains(t, exampleSecret.Data, "tls.crt", "did not contain tls.crt")
+	assert.Contains(t, exampleSecret.Data, "tls.key", "did not contain tls.key")
+	assert.NotContains(t, exampleSecret.Data, "tls.p12", "should not have contained tls.p12")
+	assert.NotContains(t, exampleSecret.Data, "tls-p12-secret.txt", "should not have contained tls-p12-secret.txt")
 
 	return nil
 }
@@ -245,7 +246,10 @@ func SetupCluster(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err = serviceBasicTest(t, f, ctx); err != nil {
-		t.Fatal(err)
+		t.Fatal("PEM Service", err)
+	}
+	if err = serviceP12Test(t, f, ctx); err != nil {
+		t.Fatal("PKCS12 Service", err)
 	}
 }
 

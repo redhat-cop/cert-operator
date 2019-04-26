@@ -142,9 +142,10 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 		}
 
 		dm := make(map[string][]byte)
+		secretType := corev1.SecretTypeTLS
 
 		// see what format was requested
-		if svc.ObjectMeta.Annotations[r.config.General.Annotations.Format] == "pkcs12" {
+		if svc.ObjectMeta.Annotations[r.config.General.Annotations.Format] == r.config.General.Annotations.Pkcs12Format {
 			password := rand.String(24)
 			pemCrt, _ := pem.Decode(keyPair.Cert)
 			pemKey, _ := pem.Decode(keyPair.Key)
@@ -157,6 +158,9 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 
 			dm["tls.p12"] = p12cert
 			dm["tls-p12-secret.txt"] = []byte(password)
+
+			// override secret type since it's not tls
+			secretType = corev1.SecretTypeOpaque
 		} else {
 			dm["tls.crt"] = keyPair.Cert
 			dm["tls.key"] = keyPair.Key
@@ -173,7 +177,7 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 				Namespace: svc.ObjectMeta.Namespace,
 			},
 			Data: dm,
-			Type: corev1.SecretTypeTLS,
+			Type: secretType,
 		}
 
 		err = helpers.Apply(r.client, certSec)
