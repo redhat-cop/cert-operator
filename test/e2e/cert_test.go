@@ -6,13 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"gotest.tools/assert"
-	"gotest.tools/assert/cmp"
-
 	routev1 "github.com/openshift/api/route/v1"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
-	a "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -83,7 +80,7 @@ func routeBasicTest(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 		return err
 	}
 
-	assert.Assert(t, waitForAnnotation(t, f, exampleRoute, "openshift.io/cert-ctl-status", "secured"))
+	assert.Nil(t, waitForAnnotation(t, f, exampleRoute, "openshift.io/cert-ctl-status", "secured"))
 
 	return nil
 }
@@ -135,7 +132,7 @@ func serviceP12Test(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 	}
 
 	// Check the the annotation was set properly
-	assert.Assert(t, waitForAnnotation(t, f, exampleService, "openshift.io/cert-ctl-status", "secured"))
+	assert.Nil(t, waitForAnnotation(t, f, exampleService, "openshift.io/cert-ctl-status", "secured"))
 
 	// Verify that a secret was created
 	exampleSecret := &corev1.Secret{}
@@ -146,10 +143,10 @@ func serviceP12Test(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 
 	// Check that the secret is of the expected type and has values set
 	assert.Equal(t, exampleSecret.Type, corev1.SecretTypeTLS)
-	assert.Assert(t, cmp.Contains(exampleSecret.Data, "tls.crt"))
-	assert.Assert(t, cmp.Contains(exampleSecret.Data, "tls.key"))
-	assert.Assert(t, cmp.Contains(exampleSecret.Data, "tls.p12"))
-	assert.Assert(t, cmp.Contains(exampleSecret.Data, "tls-p12-secret.txt"))
+	assert.NotContains(t, exampleSecret.Data, "tls.crt")
+	assert.NotContains(t, exampleSecret.Data, "tls.key")
+	assert.Contains(t, exampleSecret.Data, "tls.p12")
+	assert.Contains(t, exampleSecret.Data, "tls-p12-secret.txt")
 
 	return nil
 }
@@ -201,7 +198,7 @@ func serviceBasicTest(t *testing.T, f *framework.Framework, ctx *framework.TestC
 	}
 
 	// Check the the annotation was set properly
-	assert.Assert(t, waitForAnnotation(t, f, exampleService, "openshift.io/cert-ctl-status", "secured"))
+	assert.Nil(t, waitForAnnotation(t, f, exampleService, "openshift.io/cert-ctl-status", "secured"))
 
 	// Verify that a secret was created
 	exampleSecret := &corev1.Secret{}
@@ -212,10 +209,10 @@ func serviceBasicTest(t *testing.T, f *framework.Framework, ctx *framework.TestC
 
 	// Check that the secret is of the expected type and has values set
 	assert.Equal(t, exampleSecret.Type, corev1.SecretTypeTLS)
-	assert.Assert(t, cmp.Contains(exampleSecret.Data, "tls.crt"))
-	assert.Assert(t, cmp.Contains(exampleSecret.Data, "tls.key"))
-	a.NotContains(t, exampleSecret.Data, "tls.p12")
-	a.NotContains(t, exampleSecret.Data, "tls-p12-secret.txt")
+	assert.Contains(t, exampleSecret.Data, "tls.crt")
+	assert.Contains(t, exampleSecret.Data, "tls.key")
+	assert.NotContains(t, exampleSecret.Data, "tls.p12")
+	assert.NotContains(t, exampleSecret.Data, "tls-p12-secret.txt")
 
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/redhat-cop/cert-operator/pkg/certs"
 	certconf "github.com/redhat-cop/cert-operator/pkg/config"
 	"github.com/redhat-cop/cert-operator/pkg/helpers"
+	"github.com/redhat-cop/cert-operator/pkg/rand"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -141,13 +142,10 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 		}
 
 		dm := make(map[string][]byte)
-		dm["tls.crt"] = keyPair.Cert
-		dm["tls.key"] = keyPair.Key
 
-		// see if a pcks12 secret was requested
-
-		if svc.ObjectMeta.Annotations[r.config.General.Annotations.IncludePkcs12] == "true" {
-			password := helpers.String(24)
+		// see what format was requested
+		if svc.ObjectMeta.Annotations[r.config.General.Annotations.Format] == "pkcs12" {
+			password := rand.String(24)
 			pemCrt, _ := pem.Decode(keyPair.Cert)
 			pemKey, _ := pem.Decode(keyPair.Key)
 			p12cert, err := certs.ConvertToPKCS12(pemKey.Bytes, pemCrt.Bytes, [][]byte{}, password)
@@ -159,6 +157,9 @@ func (r *ReconcileService) Reconcile(request reconcile.Request) (reconcile.Resul
 
 			dm["tls.p12"] = p12cert
 			dm["tls-p12-secret.txt"] = []byte(password)
+		} else {
+			dm["tls.crt"] = keyPair.Cert
+			dm["tls.key"] = keyPair.Key
 		}
 
 		// Create a secret

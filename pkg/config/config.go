@@ -38,7 +38,6 @@ type AnnotationConfig struct {
 	Expiry        string `json:"expiry"`
 	Format        string `json:"format"`
 	NeedCertValue string `json:"need-cert-value"`
-	IncludePkcs12 string `json:"include-pkcs-12"`
 }
 
 const (
@@ -52,12 +51,11 @@ const (
         "status-reason": "openshift.io/cert-ctl-status-reason",
         "expiry": "openshift.io/cert-ctl-expires",
         "format": "openshift.io/cert-ctl-format",
-        "include-pkcs-12": "openshift.io/cert-ctl-pkcs-12",
         "need-cert-value": "new"
       }
     },
     "provider": {
-      "kind": "none",
+      "kind": "self-signed",
       "ssl": "false"
     }
   }`
