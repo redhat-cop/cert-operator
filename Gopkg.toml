@@ -11,9 +11,9 @@ required = [
   "sigs.k8s.io/controller-tools/pkg/crd/generator",
   "github.com/openshift/api/route/v1",
   "github.com/micro/go-config",
-  "gotest.tools/assert",
   "software.sslmate.com/src/go-pkcs12",
-  "github.com/Venafi/vcert"
+  "github.com/Venafi/vcert",
+  "github.com/stretchr/testify/assert"
 ]
 
 [[override]]

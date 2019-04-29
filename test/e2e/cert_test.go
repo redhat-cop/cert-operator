@@ -6,12 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"gotest.tools/assert"
-	"gotest.tools/assert/cmp"
-
 	routev1 "github.com/openshift/api/route/v1"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
+	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -82,7 +80,74 @@ func routeBasicTest(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 		return err
 	}
 
-	assert.Assert(t, waitForAnnotation(t, f, exampleRoute, "openshift.io/cert-ctl-status", "secured"))
+	assert.Nil(t, waitForAnnotation(t, f, exampleRoute, "openshift.io/cert-ctl-status", "secured"))
+
+	return nil
+}
+
+func serviceP12Test(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
+	namespace, err := ctx.GetNamespace()
+	if err != nil {
+		return fmt.Errorf("could not get namespace: %v", err)
+	}
+
+	exampleService := &corev1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "example-service-pkcs12",
+			Namespace: namespace,
+			Annotations: map[string]string{
+				"openshift.io/cert-ctl-status": "new",
+				"openshift.io/cert-ctl-format": "PKCS12",
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				corev1.ServicePort{
+					Name:       "web",
+					Port:       8080,
+					Protocol:   "TCP",
+					TargetPort: intstr.FromInt(8080),
+				},
+			},
+			Selector: map[string]string{
+				"name": "example-service-pkcs12",
+			},
+			Type: "ClusterIP",
+		},
+	}
+
+	// use TestCtx's create helper to create the object and add a cleanup function for the new object
+	err = f.Client.Create(goctx.TODO(), exampleService, &framework.CleanupOptions{TestContext: ctx, Timeout: cleanupTimeout, RetryInterval: cleanupRetryInterval})
+	if err != nil {
+		return err
+	}
+
+	// Get the service to confirm it was created
+	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: exampleService.Name, Namespace: namespace}, exampleService)
+	if err != nil {
+		return err
+	}
+
+	// Check the the annotation was set properly
+	assert.Nil(t, waitForAnnotation(t, f, exampleService, "openshift.io/cert-ctl-status", "secured"))
+
+	// Verify that a secret was created
+	exampleSecret := &corev1.Secret{}
+	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: exampleService.Name + "-certificate", Namespace: namespace}, exampleSecret)
+	if err != nil {
+		return err
+	}
+
+	// Check that the secret is of the expected type and has values set
+	assert.Equal(t, exampleSecret.Type, corev1.SecretTypeOpaque, "invalid secret type")
+	assert.NotContains(t, exampleSecret.Data, "tls.crt", "should not have contained tls.crt")
+	assert.NotContains(t, exampleSecret.Data, "tls.key", "should not have contained tls.key")
+	assert.Contains(t, exampleSecret.Data, "tls.p12", "should have contained tls.p12")
+	assert.Contains(t, exampleSecret.Data, "tls-p12-secret.txt", "should have contained tls-p12-secret.txt")
 
 	return nil
 }
@@ -134,7 +199,7 @@ func serviceBasicTest(t *testing.T, f *framework.Framework, ctx *framework.TestC
 	}
 
 	// Check the the annotation was set properly
-	assert.Assert(t, waitForAnnotation(t, f, exampleService, "openshift.io/cert-ctl-status", "secured"))
+	assert.Nil(t, waitForAnnotation(t, f, exampleService, "openshift.io/cert-ctl-status", "secured"))
 
 	// Verify that a secret was created
 	exampleSecret := &corev1.Secret{}
@@ -144,9 +209,11 @@ func serviceBasicTest(t *testing.T, f *framework.Framework, ctx *framework.TestC
 	}
 
 	// Check that the secret is of the expected type and has values set
-	assert.Equal(t, exampleSecret.Type, corev1.SecretTypeTLS)
-	assert.Assert(t, cmp.Contains(exampleSecret.Data, "tls.crt"))
-	assert.Assert(t, cmp.Contains(exampleSecret.Data, "tls.key"))
+	assert.Equal(t, exampleSecret.Type, corev1.SecretTypeTLS, "invalid secret type")
+	assert.Contains(t, exampleSecret.Data, "tls.crt", "did not contain tls.crt")
+	assert.Contains(t, exampleSecret.Data, "tls.key", "did not contain tls.key")
+	assert.NotContains(t, exampleSecret.Data, "tls.p12", "should not have contained tls.p12")
+	assert.NotContains(t, exampleSecret.Data, "tls-p12-secret.txt", "should not have contained tls-p12-secret.txt")
 
 	return nil
 }
@@ -179,7 +246,10 @@ func SetupCluster(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err = serviceBasicTest(t, f, ctx); err != nil {
-		t.Fatal(err)
+		t.Fatal("PEM Service", err)
+	}
+	if err = serviceP12Test(t, f, ctx); err != nil {
+		t.Fatal("PKCS12 Service", err)
 	}
 }
 

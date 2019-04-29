@@ -88,6 +88,14 @@ provider:
   ssl: <true/false>
 ----
 
+=== Certificate Formats
+
+This operator currently supports the following certificate formats.
+
+.[[supported-cert-formats]]Supported Formats
+* [x] PEM - default
+* [x] PKCS12
+
 === Notifications
 
 This operator currently supports sending notifications via ChatOps. The following is the set of current and planned providers.
@@ -159,7 +167,7 @@ spec:
 
 === Create a Certificate for a Service (SSL-to-Pod)
 
-Annotate the service to tell the operator it needs a cert.
+Annotate the service to tell the operator it needs a cert.  The default certificate format will be PEM unless you first create an annotation of "openshift.io/cert-ctl-format" with a <<supported-cert-formats,Supported Certificate Formats>> above.
 
 [source,bash]
 ----
@@ -189,3 +197,15 @@ You'll also notice that the annotation on the service has changed.
 $ oc get service dotnet-example -o jsonpath='{.metadata.annotations.openshift\.io/cert-ctl-status}'
 secured
 ----
+
+=== Create a Certificate for a Service (SSL-to-Pod) PKCS12 format
+
+Annotate the service to tell the operator it needs a cert.  The default certificate format will be PEM unless you first create an annotation of format "openshift.io/cert-ctl-format"
+
+[source,bash]
+----
+oc annotate service dotnet-example openshift.io/cert-ctl-format=pkcs12 --overwrite
+oc annotate service dotnet-example openshift.io/cert-ctl-status=new --overwrite
+----
+
+You will notice two entries in the secret "tls.p12" and "tls-p12-secret.txt"
