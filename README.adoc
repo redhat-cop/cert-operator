@@ -92,7 +92,7 @@ provider:
 
 This operator currently supports the following certificate formats.
 
-.Supported Formats
+.[[supported-cert-formats]]Supported Formats
 * [x] PEM - default
 * [x] PKCS12
 
@@ -167,7 +167,7 @@ spec:
 
 === Create a Certificate for a Service (SSL-to-Pod)
 
-Annotate the service to tell the operator it needs a cert.  The default certificate format will be PEM unless you first create an annotation of "openshift.io/cert-ctl-format" with
+Annotate the service to tell the operator it needs a cert.  The default certificate format will be PEM unless you first create an annotation of "openshift.io/cert-ctl-format" with a <<supported-cert-formats,Supported Certificate Formats>> above.
 
 [source,bash]
 ----
