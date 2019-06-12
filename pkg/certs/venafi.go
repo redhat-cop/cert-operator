@@ -101,7 +101,7 @@ func (p *VenafiProvider) Provision(host string, validFrom string, validFor time.
 		return KeyPair{}, NewCertError("could not generate certificate request: " + err.Error())
 	}
 
-	requestID, err := c.RequestCertificate(enrollReq, "")
+	requestID, err := c.RequestCertificate(enrollReq)
 	if err != nil {
 		return KeyPair{}, NewCertError("could not submit certificate request: " + err.Error())
 	}
