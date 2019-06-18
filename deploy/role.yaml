@@ -1,13 +1,44 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: cert-operator-role
+  name: cert-operator-cluster
 rules:
   - apiGroups:
     - ""
     attributeRestrictions: null
     resources:
     - services
+    - secrets
+    - pods
+    verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+  - apiGroups:
+    - ""
+    - route.openshift.io
+    attributeRestrictions: null
+    resources:
     - routes
     verbs:
+    - get
+    - list
+    - watch
+    - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cert-operator-local
+rules:
+  - apiGroups:
+    - ""
+    attributeRestrictions: null
+    resources:
+    - pods
+    - configmaps
+    verbs:
     - create
+    - get
