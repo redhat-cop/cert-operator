@@ -73,7 +73,7 @@ required = [
   
 [[constraint]]
   name = "github.com/Venafi/vcert"
-  version = "3.18.4"
+  version = "4.1.0"
 
 [prune]
   go-tests = true
