@@ -135,7 +135,15 @@ func (r *ReconcileRoute) Reconcile(request reconcile.Request) (reconcile.Result,
 	if route.ObjectMeta.Annotations[r.config.General.Annotations.Status] == r.config.General.Annotations.NeedCertValue {
 		reqLogger.Info("Reconciling Route")
 
-		// Retreive cert from provider
+		if route.Spec.TLS.Termination == v1.TLSTerminationPassthrough {
+			route.ObjectMeta.Annotations[r.config.General.Annotations.Status] = "failed"
+			route.ObjectMeta.Annotations[r.config.General.Annotations.StatusReason] = "Certificate and key cannot be set on Passthrough route"
+
+			err = helpers.Apply(r.client, route)
+			return reconcile.Result{}, err
+		}
+
+		// Retrieve cert from provider
 		keyPair, err := helpers.GetCert(route.Spec.Host, r.provider, r.config.Provider.Ssl)
 		if err != nil {
 			route.ObjectMeta.Annotations[r.config.General.Annotations.Status] = "failed"
