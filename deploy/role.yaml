@@ -27,6 +27,12 @@ rules:
     - list
     - watch
     - update
+  - apiGroups:
+    - "route.openshift.io"
+    resources:
+    - routes/custom-host
+    verbs:
+    - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -42,3 +48,25 @@ rules:
     verbs:
     - create
     - get
+  - apiGroups:
+    - extensions
+    resources:
+    - replicasets
+    - deployments
+    verbs:
+    - "get"
+  - apiGroups:
+    - monitoring.coreos.com
+    resources:
+    - servicemonitors
+    verbs:
+    - "get"
+    - "create"
+  - apiGroups:
+    - extensions
+    resources:
+    - deployments/finalizers
+    resourceNames:
+    - cert-operator
+    verbs:
+    - "update"
