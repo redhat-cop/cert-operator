@@ -85,6 +85,47 @@ func routeBasicTest(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 	return nil
 }
 
+func routePassthroughTest(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
+	namespace, err := ctx.GetNamespace()
+	if err != nil {
+		return fmt.Errorf("could not get namespace: %v", err)
+	}
+
+	exampleRoute := &routev1.Route{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Route",
+			APIVersion: "route.openshift.io/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "route-passthrough",
+			Namespace: namespace,
+			Annotations: map[string]string{
+				"openshift.io/cert-ctl-status": "new",
+			},
+		},
+		Spec: routev1.RouteSpec{
+			Host: fmt.Sprintf("route-passthrough.%s.example.com", namespace),
+			TLS: &routev1.TLSConfig{
+				Termination: routev1.TLSTerminationPassthrough,
+			},
+			To: routev1.RouteTargetReference{
+				Kind: "Service",
+				Name: "myservice",
+			},
+		},
+	}
+
+	// use TestCtx's create helper to create the object and add a cleanup function for the new object
+	err = f.Client.Create(goctx.TODO(), exampleRoute, &framework.CleanupOptions{TestContext: ctx, Timeout: cleanupTimeout, RetryInterval: cleanupRetryInterval})
+	if err != nil {
+		return err
+	}
+
+	assert.Nil(t, waitForAnnotation(t, f, exampleRoute, "openshift.io/cert-ctl-status", "failed"))
+
+	return nil
+}
+
 func serviceP12Test(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
 	namespace, err := ctx.GetNamespace()
 	if err != nil {
@@ -243,6 +284,9 @@ func SetupCluster(t *testing.T) {
 	}
 
 	if err = routeBasicTest(t, f, ctx); err != nil {
+		t.Fatal(err)
+	}
+	if err = routePassthroughTest(t, f, ctx); err != nil {
 		t.Fatal(err)
 	}
 	if err = serviceBasicTest(t, f, ctx); err != nil {
