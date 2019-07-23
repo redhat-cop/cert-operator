@@ -11,16 +11,18 @@ package config
 
 import (
 	"encoding/json"
+	"github.com/micro/go-config/source/env"
+	"github.com/micro/go-config/source/flag"
 	"os"
 
-	config "github.com/micro/go-config"
-	"github.com/micro/go-config/source/env"
+	"github.com/micro/go-config"
 	"github.com/micro/go-config/source/file"
-	"github.com/micro/go-config/source/flag"
 	"github.com/micro/go-config/source/memory"
 	"github.com/redhat-cop/cert-operator/pkg/certs"
-	"github.com/sirupsen/logrus"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
+
+var log = logf.Log.WithName("Config")
 
 type Config struct {
 	//	Notifiers []notifier.Notifier  `json:"notifiers"`
@@ -44,7 +46,6 @@ type AnnotationConfig struct {
 
 const (
 	defaultConfigFile = "/etc/cert-operator/config.yaml"
-	defaultProvider   = "self-signed"
 	defaultConfig     = `
   {
     "general": {
@@ -74,29 +75,46 @@ func NewConfig() Config {
 	memorySource := memory.NewSource(
 		memory.WithData(data),
 	)
-	// Load json config file
-	tmpConfig.Load(
+
+	log.Info("Using default configuration.")
+	_ = tmpConfig.Load(
 		memorySource,
-		file.NewSource(
-			file.WithPath(getConfigFile()),
-		),
+	)
+
+	configFile := getConfigFile()
+	if fileExist(configFile) {
+		log.Info("Loading config file from ", configFile)
+
+		_ = tmpConfig.Load(file.NewSource(
+			file.WithPath(configFile),
+		))
+	}
+
+	_ = tmpConfig.Load(
 		env.NewSource(),
 		flag.NewSource(),
 	)
 	var conf Config
 
-	tmpConfig.Scan(&conf)
+	err := tmpConfig.Scan(&conf)
+
+	if err != nil {
+		log.Error(err, "Could not load configurations properly.")
+	}
 
 	return conf
 }
 
 func getConfigFile() (configFile string) {
 	if value, ok := os.LookupEnv("CERT_OP_CONFIG"); ok {
-		logrus.Infof("Loading custom config file from %v", value)
 		return value
 	}
-	logrus.Infof("Loading default config file from %v", defaultConfigFile)
 	return defaultConfigFile
+}
+
+func fileExist(path string) bool {
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
 }
 
 func (c *Config) String() string {
