@@ -135,7 +135,15 @@ func (r *ReconcileRoute) Reconcile(request reconcile.Request) (reconcile.Result,
 	if route.ObjectMeta.Annotations[r.config.General.Annotations.Status] == r.config.General.Annotations.NeedCertValue {
 		reqLogger.Info("Reconciling Route")
 
-		if route.Spec.TLS.Termination == v1.TLSTerminationPassthrough {
+		var termination v1.TLSTerminationType
+		config := route.Spec.TLS
+		if config == nil {
+			termination = v1.TLSTerminationEdge
+		} else {
+			termination = route.Spec.TLS.Termination
+		}
+
+		if termination == v1.TLSTerminationPassthrough {
 			route.ObjectMeta.Annotations[r.config.General.Annotations.Status] = "failed"
 			route.ObjectMeta.Annotations[r.config.General.Annotations.StatusReason] = "Certificate and key cannot be set on Passthrough route"
 
@@ -151,16 +159,6 @@ func (r *ReconcileRoute) Reconcile(request reconcile.Request) (reconcile.Result,
 		} else {
 			route.ObjectMeta.Annotations[r.config.General.Annotations.Status] = "secured"
 			route.ObjectMeta.Annotations[r.config.General.Annotations.Expiry] = keyPair.Expiry.Format(helpers.TimeFormat)
-		}
-
-		//var termination string
-
-		var termination v1.TLSTerminationType
-		config := route.Spec.TLS
-		if config == nil {
-			termination = v1.TLSTerminationEdge
-		} else {
-			termination = route.Spec.TLS.Termination
 		}
 
 		route.Spec.TLS = &v1.TLSConfig{

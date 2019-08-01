@@ -47,82 +47,83 @@ func TestCertCtrl(t *testing.T) {
 func routeBasicTest(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
 	namespace, err := ctx.GetNamespace()
 	if err != nil {
-		return fmt.Errorf("could not get namespace: %v", err)
+		return err
 	}
 
-	exampleRoute := &routev1.Route{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Route",
-			APIVersion: "route.openshift.io/v1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "route-tls",
-			Namespace: namespace,
-			Annotations: map[string]string{
-				"openshift.io/cert-ctl-status": "new",
-			},
-		},
-		Spec: routev1.RouteSpec{
-			Host: fmt.Sprintf("route-tls.%s.example.com", namespace),
-			TLS: &routev1.TLSConfig{
-				Termination: routev1.TLSTerminationEdge,
-			},
-			To: routev1.RouteTargetReference{
-				Kind: "Service",
-				Name: "myservice",
-			},
-		},
-	}
+	exampleRoute := generateTLSRoute(routev1.TLSTerminationEdge, namespace, "tls")
 
-	// use TestCtx's create helper to create the object and add a cleanup function for the new object
-	err = f.Client.Create(goctx.TODO(), exampleRoute, &framework.CleanupOptions{TestContext: ctx, Timeout: cleanupTimeout, RetryInterval: cleanupRetryInterval})
+	return testRoute(exampleRoute, "secured", t, f, ctx)
+}
+
+func routeTLSConfigNullTest(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
+	namespace, err := getNamespace(ctx)
 	if err != nil {
 		return err
 	}
 
-	assert.Nil(t, waitForAnnotation(t, f, exampleRoute, "openshift.io/cert-ctl-status", "secured"))
+	exampleRoute := generateRoute(nil, namespace, "null-tls")
 
-	return nil
+	return testRoute(exampleRoute, "secured", t, f, ctx)
 }
 
 func routePassthroughTest(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
 	namespace, err := ctx.GetNamespace()
 	if err != nil {
-		return fmt.Errorf("could not get namespace: %v", err)
+		return err
 	}
 
-	exampleRoute := &routev1.Route{
+	exampleRoute := generateTLSRoute(routev1.TLSTerminationPassthrough, namespace, "oassthrough")
+
+	return testRoute(exampleRoute, "failed", t, f, ctx)
+}
+
+func getNamespace(ctx *framework.TestCtx) (string, error) {
+	namespace, err := ctx.GetNamespace()
+	if err != nil {
+		return "", fmt.Errorf("could not get namespace: %v", err)
+	}
+
+	return namespace, nil
+}
+
+func generateTLSRoute(terminationType routev1.TLSTerminationType, namespace string, discriminator string) routev1.Route {
+	return generateRoute(
+		&routev1.TLSConfig{
+			Termination: terminationType,
+		}, namespace, discriminator)
+}
+
+func generateRoute(config *routev1.TLSConfig, namespace string, discriminator string) routev1.Route {
+	return routev1.Route{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Route",
 			APIVersion: "route.openshift.io/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "route-passthrough",
+			Name:      "route-" + discriminator,
 			Namespace: namespace,
 			Annotations: map[string]string{
 				"openshift.io/cert-ctl-status": "new",
 			},
 		},
 		Spec: routev1.RouteSpec{
-			Host: fmt.Sprintf("route-passthrough.%s.example.com", namespace),
-			TLS: &routev1.TLSConfig{
-				Termination: routev1.TLSTerminationPassthrough,
-			},
+			Host: fmt.Sprintf("route-"+discriminator+".%s.example.com", namespace),
+			TLS:  config,
 			To: routev1.RouteTargetReference{
 				Kind: "Service",
 				Name: "myservice",
 			},
 		},
 	}
+}
 
-	// use TestCtx's create helper to create the object and add a cleanup function for the new object
-	err = f.Client.Create(goctx.TODO(), exampleRoute, &framework.CleanupOptions{TestContext: ctx, Timeout: cleanupTimeout, RetryInterval: cleanupRetryInterval})
+func testRoute(exampleRoute routev1.Route, wantStatus string, t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
+	err := f.Client.Create(goctx.TODO(), &exampleRoute, &framework.CleanupOptions{TestContext: ctx, Timeout: cleanupTimeout, RetryInterval: cleanupRetryInterval})
 	if err != nil {
 		return err
 	}
 
-	assert.Nil(t, waitForAnnotation(t, f, exampleRoute, "openshift.io/cert-ctl-status", "failed"))
-
+	assert.Nil(t, waitForAnnotation(t, f, &exampleRoute, "openshift.io/cert-ctl-status", wantStatus))
 	return nil
 }
 
@@ -286,6 +287,11 @@ func SetupCluster(t *testing.T) {
 	if err = routeBasicTest(t, f, ctx); err != nil {
 		t.Fatal(err)
 	}
+
+	if err = routeTLSConfigNullTest(t, f, ctx); err != nil {
+		t.Fatal(err)
+	}
+
 	if err = routePassthroughTest(t, f, ctx); err != nil {
 		t.Fatal(err)
 	}

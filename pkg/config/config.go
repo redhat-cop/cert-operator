@@ -44,7 +44,6 @@ type AnnotationConfig struct {
 
 const (
 	defaultConfigFile = "/etc/cert-operator/config.yaml"
-	defaultProvider   = "self-signed"
 	defaultConfig     = `
   {
     "general": {
